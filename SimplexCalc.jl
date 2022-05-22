@@ -65,13 +65,27 @@ function Cube_Label(Dim,L)
         end
     end
 
-    @show Cube
-    
     # Second round
+    i=0
     dims = ntuple(_->L, Dim)
-    for coords in Iterators.product(map(i->1:dims[i], dims)...)
-        @show coords
+    for coords in Iterators.product(map(k->1:dims[k], dims)...)
+        i += 1
+        #@show coords
+        for j = 1:Dim
+            #@show coords[j]
+            #@show Cube[i,j+Dim]
+
+            plane1 = L^(j-1)
+            plane2 = L^(j)
+
+            if coords[j] == L
+                Cube[i,j+Dim] = Cube[i+plane1-plane2,j]
+            else
+                Cube[i,j+Dim] = Cube[i+plane1,j]
+            end
+        end
     end
+    @show Cube
 end
 
 #-----------------------MAIN---------------------
