@@ -6,6 +6,8 @@ function Cube_Label_3D(Dim,L) # ------Determine the indices of d=3 s=2
     Ncube = L^Dim
     Nspin = Dim*Ncube
 
+    println(Nspin)
+
     Cube = zeros(Int,Ncube,6)
 
     # First round 
