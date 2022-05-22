@@ -53,6 +53,21 @@ end #Cube_Label_3D
 
 function Cube_Label(Dim,L)
 
+    Ncube = L^Dim
+    #Nspin = Dim*Ncube
+
+    Cube = zeros(Int,Ncube,2*Dim)
+
+    # First round 
+    for i = 1:Ncube
+        for j = 1:L
+            Cube[i,j] = Dim*(i-1) + j
+        end
+    end
+
+    @show Cube
+    
+    # Second round
     dims = ntuple(_->L, Dim)
     for coords in Iterators.product(map(i->1:dims[i], dims)...)
         @show coords
@@ -61,7 +76,7 @@ end
 
 #-----------------------MAIN---------------------
 
-Dim = 4
+Dim = 3
 L = 3 
 
 Cube = Cube_Label_3D(Dim,L) 
