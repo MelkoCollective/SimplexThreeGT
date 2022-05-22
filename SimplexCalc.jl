@@ -1,9 +1,10 @@
-#This is a code to print the indices of one cube (3 simplex)
 
-function Cube_Label(Dim,L)
-
-    Ncube = L^3
-    Nspin = 3*Ncube
+function Cube_Label_3D(Dim,L) # ------Determine the indices of d=3 s=2
+    if Dim != 3
+        println("ERROR Dim")
+    end
+    Ncube = L^Dim
+    Nspin = Dim*Ncube
 
     Cube = zeros(Int,Ncube,6)
 
@@ -49,6 +50,6 @@ end
 Dim = 3
 L = 3 
 
-Cube_Label(Dim,L) 
+Cube_Label_3D(Dim,L) 
 
 println("Edlánat’e World")
