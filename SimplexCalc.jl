@@ -54,13 +54,11 @@ end #Cube_Label_3D
 function Cube_Label(Dim,L)
 
     Ncube = L^Dim
-    #Nspin = Dim*Ncube
-
     Cube = zeros(Int,Ncube,2*Dim)
 
     # First round 
     for i = 1:Ncube
-        for j = 1:L
+        for j = 1:Dim
             Cube[i,j] = Dim*(i-1) + j
         end
     end
@@ -70,14 +68,9 @@ function Cube_Label(Dim,L)
     dims = ntuple(_->L, Dim)
     for coords in Iterators.product(map(k->1:dims[k], dims)...)
         i += 1
-        #@show coords
         for j = 1:Dim
-            #@show coords[j]
-            #@show Cube[i,j+Dim]
-
             plane1 = L^(j-1)
             plane2 = L^(j)
-
             if coords[j] == L
                 Cube[i,j+Dim] = Cube[i+plane1-plane2,j]
             else
@@ -85,19 +78,17 @@ function Cube_Label(Dim,L)
             end
         end
     end
-    @show Cube
+    return Cube
 end
 
 #-----------------------MAIN---------------------
 
 Dim = 3
-L = 3 
+L = 2 
 
-Cube = Cube_Label_3D(Dim,L) 
-println(Cube)
+#Cube = Cube_Label_3D(Dim,L) 
 
-#Cube_Label(Dim,L)
-
-Cube_Label(Dim,L)  #One entry for every dimension
+Cube = Cube_Label(Dim,L)  #One entry for every dimension
+@show Cube
 
 println("Edlánat’e World")
