@@ -1,5 +1,5 @@
 
-function Cube_Label_3D(Dim,L) # ------Determine the indices of d=3 s=2
+function Cube_Label_3D(Dim,L) # ------Determine the indices of d=3 s=3
     if Dim != 3
         println("ERROR Dim")
     end
@@ -24,26 +24,28 @@ function Cube_Label_3D(Dim,L) # ------Determine the indices of d=3 s=2
             for x=1:L
                 i += 1
                 if (x==L) #X-NEIGHBOR
-                    Cube[i,4] = Cube[i-L+1,3]
+                    Cube[i,4] = Cube[i-L+1,1]
                 else
-                    Cube[i,4] = Cube[i+1,3]
+                    Cube[i,4] = Cube[i+1,1]
                 end
                 if (y==L) #Y-NEIGHBOR
-                    Cube[i,5] =  Cube[i-L^2+L,1]
+                    Cube[i,5] =  Cube[i-L^2+L,2]
                 else
-                    Cube[i,5] =  Cube[i+L,1]
+                    Cube[i,5] =  Cube[i+L,2]
                 end
                 if (z==L) #Z-NEIGHBOR
-                    Cube[i,6] = Cube[i-L^3+L^2,2]
+                    Cube[i,6] = Cube[i-L^3+L^2,3]
                 else
-                    Cube[i,6] = Cube[i+L^2,2]
+                    Cube[i,6] = Cube[i+L^2,3]
                 end
              end #x
         end #y
     end #z
 
 
-   println(Cube)
+#   println(Cube)
+
+return Cube
 
 end
 
@@ -52,6 +54,7 @@ end
 Dim = 3
 L = 3 
 
-Cube_Label_3D(Dim,L) 
+Cube = Cube_Label_3D(Dim,L) 
+println(Cube)
 
 println("Edlánat’e World")
