@@ -86,16 +86,16 @@ end
 function Calc_Energy(Spin,Ncube)
 
     #calculate the energy
-    Energy = 0
+    Energy = 0.
     for i = 1:Ncube
-        prod = 0
+        prod = 1
         for j = 1:6
-            global prod *= Spin[Cube[i,j]]
+            prod *= Spin[Cube[i,j]]
         end
-        global Energy += -prod
+        Energy += -prod
     end
 
-return Energy
+    return Energy
 end
 
 #-----------------------MAIN---------------------
