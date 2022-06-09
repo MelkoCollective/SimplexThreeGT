@@ -81,14 +81,37 @@ function Cube_Label(Dim,L)
     return Cube
 end
 
+#-----------------------Energy Calculation---------------------
+
+function Calc_Energy(Spin,Ncube)
+
+    #calculate the energy
+    Energy = 0
+    for i = 1:Ncube
+        prod = 0
+        for j = 1:6
+            global prod *= Spin[Cube[i,j]]
+        end
+        global Energy += -prod
+    end
+
+return Energy
+end
+
 #-----------------------MAIN---------------------
 
 Dim = 3
-L = 2 
+L = 3 
 
-#Cube = Cube_Label_3D(Dim,L) 
-
-Cube = Cube_Label(Dim,L)  #One entry for every dimension
+Cube = Cube_Label_3D(Dim,L)  #One entry for every dimension
 @show Cube
+
+Ncube = L^Dim
+Nspin = 3*Ncube
+
+Spin = ones(Int,Nspin)
+@show size(Spin),Spin
+
+@show Calc_Energy(Spin,Ncube)
 
 println("Edlánat’e World")
