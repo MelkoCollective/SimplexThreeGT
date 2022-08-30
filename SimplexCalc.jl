@@ -51,13 +51,26 @@ end #Cube_Label_3D
 
 #------------------------------------------------
 
-function Invert_Cube(Cube)
+function Invert_Cube_3D(Cube)
 
-    #for i = 1:Ncube
+    Ncube = size(Cube,1) 
+    Nspin = 3*Ncube
 
+    Inverse = zeros(Int,Nspin,2) #each cube shares 2 spins in 3D
 
+    for i = 1:Ncube
+        for j = 1:6
+            if Inverse[Cube[i,j],1] == 0 
+                Inverse[Cube[i,j],1] = i
+            elseif Inverse[Cube[i,j],2] == 0 
+                Inverse[Cube[i,j],2] = i 
+            else 
+                println("Inverse Error")
+            end
+        end
+    end
 
-return size(Cube,1) 
+return Inverse
 end #Invert_Cube
 
 #------------------------------------------------
@@ -117,7 +130,7 @@ L = 3
 Cube = Cube_Label_3D(Dim,L)  #One entry for every dimension
 @show Cube
 
-Inverse = Invert_Cube(Cube)
+Inverse = Invert_Cube_3D(Cube)
 @show Inverse
 
 Ncube = L^Dim
