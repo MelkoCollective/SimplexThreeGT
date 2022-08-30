@@ -51,6 +51,17 @@ end #Cube_Label_3D
 
 #------------------------------------------------
 
+function Invert_Cube(Cube)
+
+    #for i = 1:Ncube
+
+
+
+return size(Cube,1) 
+end #Invert_Cube
+
+#------------------------------------------------
+
 function Cube_Label(Dim,L)
 
     Ncube = L^Dim
@@ -106,10 +117,14 @@ L = 3
 Cube = Cube_Label_3D(Dim,L)  #One entry for every dimension
 @show Cube
 
+Inverse = Invert_Cube(Cube)
+@show Inverse
+
 Ncube = L^Dim
 Nspin = 3*Ncube
 
 Spin = ones(Int,Nspin)
+#Spin[1] = -1
 @show size(Spin),Spin
 
 @show Calc_Energy(Spin,Ncube)
