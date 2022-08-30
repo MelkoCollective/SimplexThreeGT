@@ -122,9 +122,21 @@ function Calc_Energy(Spin,Ncube)
     return Energy
 end
 
+function Elocal(C1,C2)
+    prod1 = 1
+    prod2 = 1
+    for j = 1:6 
+        prod1 *= Spin[Cube[C1,j]]
+        prod2 *= Spin[Cube[C2,j]]
+    end
+
+    return -prod1 -prod2 
+end
+
+
 #-----------------------MAIN---------------------
 using Random
-rng = MersenneTwister(1231);
+rng = MersenneTwister(1034);
 
 Dim = 3
 L = 3 
@@ -139,13 +151,22 @@ Ncube = L^Dim
 Nspin = 3*Ncube
 
 Spin = ones(Int,Nspin)
-@show size(Spin),Spin
+#@show size(Spin),Spin
+
+#@show Calc_Energy(Spin,Ncube)
+snum = rand(rng,1:Nspin) 
+Cube1 = Inverse[snum,1]
+Cube2 = Inverse[snum,2]
+
+Eold = Elocal(Cube1,Cube2)
+Spin[snum] = - Spin[snum]
+Enew = Elocal(Cube1,Cube2)
+
+println("Delta E = ",Eold-Enew)
 
 @show Calc_Energy(Spin,Ncube)
-rnum = rand(rng,1:Nspin) 
-Spin[rnum] = - Spin[rnum]
-@show Calc_Energy(Spin,Ncube)
 @show size(Spin),Spin
+println(rand(rng))
 
 #println(rand(rng,1:Nspin))
 
