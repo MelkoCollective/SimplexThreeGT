@@ -123,6 +123,8 @@ function Calc_Energy(Spin,Ncube)
 end
 
 #-----------------------MAIN---------------------
+using Random
+rng = MersenneTwister(1231);
 
 Dim = 3
 L = 3 
@@ -137,9 +139,14 @@ Ncube = L^Dim
 Nspin = 3*Ncube
 
 Spin = ones(Int,Nspin)
-#Spin[1] = -1
 @show size(Spin),Spin
 
 @show Calc_Energy(Spin,Ncube)
+rnum = rand(rng,1:Nspin) 
+Spin[rnum] = - Spin[rnum]
+@show Calc_Energy(Spin,Ncube)
+@show size(Spin),Spin
+
+#println(rand(rng,1:Nspin))
 
 println("Edlánat’e World")
