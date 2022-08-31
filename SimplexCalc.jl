@@ -105,44 +105,58 @@ function Cube_Label(Dim,L)
     return Cube
 end
 
-#-----------------------Energy Calculation---------------------
+#-----------------------Energy Calculations---------------------
 
 function Calc_Energy(Spin,Ncube)
 
     #calculate the energy
-    Energy = 0.
+    cEnergy = 0.
     for i = 1:Ncube
         prod = 1
         for j = 1:6
             prod *= Spin[Cube[i,j]]
         end
-        Energy += -prod
+        cEnergy += -prod
     end
 
-    return Energy
+    return cEnergy
 end
 
 function Elocal(C1)
     prod1 = 1
     for j = 1:6 
-        @show Spin[Cube[C1,j]]
+        #@show Spin[Cube[C1,j]]
         prod1 *= Spin[Cube[C1,j]]
     end
 
     return prod1 
 end
 
-function Elocal2(C1,C2)
-    prod1 = 1
-    prod2 = 1
-    for j = 1:6 
-        prod1 *= Spin[Cube[C1,j]]
-        prod2 *= Spin[Cube[C2,j]]
-    end
+function Energy_Diff(Spin, snum, Inverse)
 
-    return -prod1 -prod2 
+    Cube1 = Inverse[snum,1] 
+    Cube2 = Inverse[snum,2] 
+
+    Eold = -Elocal(Cube1) - Elocal(Cube2) 
+    Spin[snum] = - Spin[snum] 
+    Enew = -Elocal(Cube1) - Elocal(Cube2) 
+
+    return Eold - Enew
+
+end #Energy_Diff
+
+function MetropolisAccept(DeltaE,T,rng)
+
+    if DeltaE <= 0
+        return true
+    else
+        rnum = rand(rng)  #random number for Metropolis
+        if (exp(-T*DeltaE) > rnum)
+            return true
+        end
+    end 
+    return false
 end
-
 
 #-----------------------MAIN---------------------
 using Random
@@ -162,29 +176,27 @@ Nspin = 3*Ncube
 
 #Spin = ones(Int,Nspin)
 Spin = rand(rng,[-1, 1], Nspin)
-@show size(Spin),Spin
 
-@show Calc_Energy(Spin,Ncube)
-@show snum = rand(rng,1:Nspin) 
-@show Cube1 = Inverse[snum,1]
-@show Cube2 = Inverse[snum,2]
+#Calculate initial energy
+Energy = Calc_Energy(Spin,Ncube)
 
-#Eold = Elocal2(Cube1,Cube2)
-Eold = -Elocal(Cube1) - Elocal(Cube2)
-Spin[snum] = - Spin[snum]
-#Enew = Elocal2(Cube1,Cube2)
-Enew = -Elocal(Cube1) - Elocal(Cube2)
+T = 0.25  
+#Equilibriate
+for i = 1:2
+    snum = rand(rng,1:Nspin) 
+    DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
+    if MetropolisAccept(DeltaE,T,rng) == true 
+        global Energy += DeltaE
+    else
+        Spin[snum] = - Spin[snum]  #flip the spin back
+    end
 
-DeltaE = Eold - Enew
-println("Delta E = ",DeltaE)
+    @show Energy
+    @show Calc_Energy(Spin,Ncube)
 
-T = 0.25
-@show exp(-T*DeltaE)
+end #i
 
-#@show Calc_Energy(Spin,Ncube)
 #@show size(Spin),Spin
-println(rand(rng))
-
-#println(rand(rng,1:Nspin))
+#println(rand(rng))
 
 println("Edlánat’e World")
