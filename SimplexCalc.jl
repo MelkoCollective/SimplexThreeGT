@@ -6,7 +6,7 @@ function Cube_Label_3D(Dim,L) # ------Determine the indices of d=3 s=3
     Ncube = L^Dim
     Nspin = Dim*Ncube
 
-    println(Nspin)
+    #println(Nspin)
 
     Cube = zeros(Int,Ncube,6)
 
@@ -122,7 +122,7 @@ function Calc_Energy(Spin,Ncube)
     return cEnergy
 end
 
-function Elocal(C1)
+function Elocal(C1,Spin)
     prod1 = 1
     for j = 1:6 
         #@show Spin[Cube[C1,j]]
@@ -137,11 +137,11 @@ function Energy_Diff(Spin, snum, Inverse)
     Cube1 = Inverse[snum,1] 
     Cube2 = Inverse[snum,2] 
 
-    Eold = -Elocal(Cube1) - Elocal(Cube2) 
+    Eold = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) 
     Spin[snum] = - Spin[snum] 
-    Enew = -Elocal(Cube1) - Elocal(Cube2) 
+    Enew = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) 
 
-    return Eold - Enew
+    return Enew - Eold
 
 end #Energy_Diff
 
@@ -151,7 +151,7 @@ function MetropolisAccept(DeltaE,T,rng)
         return true
     else
         rnum = rand(rng)  #random number for Metropolis
-        if (exp(-T*DeltaE) > rnum)
+        if (exp(-DeltaE/T) > rnum)
             return true
         end
     end 
@@ -180,9 +180,11 @@ Spin = rand(rng,[-1, 1], Nspin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
 
-T = 0.25  
+T = 0.0001  
 #Equilibriate
-for i = 1:2
+num_EQL = 10000
+E_avg = 0.
+for i = 1:num_EQL
     snum = rand(rng,1:Nspin) 
     DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
     if MetropolisAccept(DeltaE,T,rng) == true 
@@ -191,10 +193,16 @@ for i = 1:2
         Spin[snum] = - Spin[snum]  #flip the spin back
     end
 
-    @show Energy
-    @show Calc_Energy(Spin,Ncube)
+    global E_avg += Energy
+
+    if (Energy - Calc_Energy(Spin,Ncube) > 0.000001)
+        @show Energy
+        @show Calc_Energy(Spin,Ncube)
+    end
 
 end #i
+
+@show E_avg/num_EQL
 
 #@show size(Spin),Spin
 #println(rand(rng))
