@@ -122,7 +122,17 @@ function Calc_Energy(Spin,Ncube)
     return Energy
 end
 
-function Elocal(C1,C2)
+function Elocal(C1)
+    prod1 = 1
+    for j = 1:6 
+        @show Spin[Cube[C1,j]]
+        prod1 *= Spin[Cube[C1,j]]
+    end
+
+    return prod1 
+end
+
+function Elocal2(C1,C2)
     prod1 = 1
     prod2 = 1
     for j = 1:6 
@@ -136,36 +146,43 @@ end
 
 #-----------------------MAIN---------------------
 using Random
-rng = MersenneTwister(1034);
+rng = MersenneTwister(1334);
 
 Dim = 3
 L = 3 
 
 Cube = Cube_Label_3D(Dim,L)  #One entry for every dimension
-@show Cube
+#@show Cube
 
 Inverse = Invert_Cube_3D(Cube)
-@show Inverse
+#@show Inverse
 
-Ncube = L^Dim
+Ncube = size(Cube,1) #Ncube = L^Dim
 Nspin = 3*Ncube
 
-Spin = ones(Int,Nspin)
-#@show size(Spin),Spin
-
-#@show Calc_Energy(Spin,Ncube)
-snum = rand(rng,1:Nspin) 
-Cube1 = Inverse[snum,1]
-Cube2 = Inverse[snum,2]
-
-Eold = Elocal(Cube1,Cube2)
-Spin[snum] = - Spin[snum]
-Enew = Elocal(Cube1,Cube2)
-
-println("Delta E = ",Eold-Enew)
+#Spin = ones(Int,Nspin)
+Spin = rand(rng,[-1, 1], Nspin)
+@show size(Spin),Spin
 
 @show Calc_Energy(Spin,Ncube)
-@show size(Spin),Spin
+@show snum = rand(rng,1:Nspin) 
+@show Cube1 = Inverse[snum,1]
+@show Cube2 = Inverse[snum,2]
+
+#Eold = Elocal2(Cube1,Cube2)
+Eold = -Elocal(Cube1) - Elocal(Cube2)
+Spin[snum] = - Spin[snum]
+#Enew = Elocal2(Cube1,Cube2)
+Enew = -Elocal(Cube1) - Elocal(Cube2)
+
+DeltaE = Eold - Enew
+println("Delta E = ",DeltaE)
+
+T = 0.25
+@show exp(-T*DeltaE)
+
+#@show Calc_Energy(Spin,Ncube)
+#@show size(Spin),Spin
 println(rand(rng))
 
 #println(rand(rng,1:Nspin))
