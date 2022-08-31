@@ -180,31 +180,42 @@ Spin = rand(rng,[-1, 1], Nspin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
 
-T = 0.0001  
-#Equilibriate
-num_EQL = 10000
-E_avg = 0.
-for i = 1:num_EQL
-    snum = rand(rng,1:Nspin) 
-    DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
-    if MetropolisAccept(DeltaE,T,rng) == true 
-        global Energy += DeltaE
-    else
-        Spin[snum] = - Spin[snum]  #flip the spin back
-    end
+for T = 10:-0.2:0.2
 
-    global E_avg += Energy
+     #Equilibriate
+     num_EQL = 10000
+     for i = 1:num_EQL
+         snum = rand(rng,1:Nspin) 
+         DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
+         if MetropolisAccept(DeltaE,T,rng) == true 
+             global Energy += DeltaE
+         else
+             Spin[snum] = - Spin[snum]  #flip the spin back
+         end
+     end #Equilibrate
+     
+     E_avg = 0.
+     E2 = 0.
+     
+     num_MCS = 200000
+     for i = 1:num_MCS
+         snum = rand(rng,1:Nspin) 
+         DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
+         if MetropolisAccept(DeltaE,T,rng) == true 
+             global Energy += DeltaE
+         else
+             Spin[snum] = - Spin[snum]  #flip the spin back
+         end
+     
+         E_avg += Energy
+         E2 += Energy*Energy
+     
+     end #MCS
+     
+     #@show E_avg/num_MCS
+     Cv = E2/num_MCS- (E_avg/num_MCS)^2
+     println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
 
-    if (Energy - Calc_Energy(Spin,Ncube) > 0.000001)
-        @show Energy
-        @show Calc_Energy(Spin,Ncube)
-    end
+end #T loop
 
-end #i
-
-@show E_avg/num_EQL
-
-#@show size(Spin),Spin
-#println(rand(rng))
-
-println("Edlánat’e World")
+#println("Edlánat’e World")
