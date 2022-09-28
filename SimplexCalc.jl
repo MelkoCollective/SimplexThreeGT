@@ -180,10 +180,10 @@ Spin = rand(rng,[-1, 1], Nspin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
 
-for T = 10:-0.2:0.2
+for T = 4.6:-0.05:0.05
 
      #Equilibriate
-     num_EQL = 10000
+     num_EQL = 50000
      for i = 1:num_EQL
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
@@ -197,7 +197,7 @@ for T = 10:-0.2:0.2
      E_avg = 0.
      E2 = 0.
      
-     num_MCS = 200000
+     num_MCS = 5000000
      for i = 1:num_MCS
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
