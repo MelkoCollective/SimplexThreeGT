@@ -1,15 +1,15 @@
 function energy(cfs::CubicFaceSites, spins::AbstractVector)
-    return sum(eachrow(cfs.labels)) do row
-        -mapreduce(*, row) do spin_idx
-            spins[spin_idx]
+    return sum(axes(cfs.labels, 1)) do i
+        -prod(1:ndims(cfs.hypercube)) do j
+            spins[cfs.labels[i, j]]
         end
-    end
+    end    
 end
 
 Base.Base.@propagate_inbounds function local_energy(cfs::CubicFaceSites, cube_idx::Int, spins)
     @boundscheck cube_idx ≤ size(cfs.labels, 1)
-    return @inbounds mapreduce(*, 1:size(cfs.labels, 2)) do idx
-        spins[cfs.labels[cube_idx, idx]]
+    return prod(1:ndims(cfs.hypercube)) do j
+        spins[cfs.labels[cube_idx, j]]
     end
 end
 
@@ -45,6 +45,8 @@ end
 function mcmc(rng::AbstractRNG, cfs::CubicFaceSites, Ts; nburns::Int=10_000, nsamples::Int=200_000)
     spins = rand(rng,(-1, 1), nspins(cfs))
     E = energy(cfs, spins)
+    Es = Float64[]
+    Cvs = Float64[]
     for T in Ts
         #Equilibriate
         for _ in 1:nburns
@@ -59,7 +61,9 @@ function mcmc(rng::AbstractRNG, cfs::CubicFaceSites, Ts; nburns::Int=10_000, nsa
             E2 += E^2
         end
         Cv = E2/nsamples- (E_avg/nsamples)^2
+        push!(Es, E_avg/nsamples/nspins(cfs))
+        push!(Cvs, Cv/nspins(cfs)/T/T)
         println(T," ",E_avg/nsamples/nspins(cfs)," ",Cv/nspins(cfs)/T/T)
     end
-    return
+    return Es, Cvs
 end

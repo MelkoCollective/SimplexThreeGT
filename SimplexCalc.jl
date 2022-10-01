@@ -174,11 +174,14 @@ Ncube = size(Cube,1) #Ncube = L^Dim
 Nspin = 3*Ncube
 
 #Spin = ones(Int,Nspin)
-Spin = rand(rng,[-1, 1], Nspin)
-
+Spin = rand(rng,(-1, 1), Nspin)
+@show sum(Spin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
+@show Energy
 
+Es = Float64[]
+Cvs = Float64[]
 for T = 10:-0.2:0.2
 
      #Equilibriate
@@ -213,8 +216,12 @@ for T = 10:-0.2:0.2
      
      #@show E_avg/num_MCS
      Cv = E2/num_MCS- (E_avg/num_MCS)^2
+     push!(Es, E_avg/num_MCS/Nspin)
+     push!(Cvs, Cv/Nspin/T/T)
      println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
 
 end #T loop
 
+# using UnicodePlots
+# UnicodePlots.lineplot(collect(1:length(Es)), Es)
 #println("Edlánat’e World")
