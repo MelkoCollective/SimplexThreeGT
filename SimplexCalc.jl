@@ -90,7 +90,7 @@ function Cube_Label(Dim,L)
     # Second round
     i=0
     dims = ntuple(_->L, Dim)
-    for coords in Iterators.product(map(k->1:dims[k], dims)...)
+    for coords in Iterators.product(map(k->1:dims[k], 1:length(dims))...)
         i += 1
         for j = 1:Dim
             plane1 = L^(j-1)
@@ -163,11 +163,10 @@ using Random
 rng = MersenneTwister(1334);
 
 Dim = 3
-L = 3 
+L = 4
 
 Cube = Cube_Label_3D(Dim,L)  #One entry for every dimension
-#@show Cube
-
+display(Cube)
 Inverse = Invert_Cube_3D(Cube)
 #@show Inverse
 
