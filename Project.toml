@@ -3,6 +3,8 @@ uuid = "79b7794b-06b0-4995-99ad-a5f41a5d4831"
 version = "0.1.0"
 
 [deps]
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
