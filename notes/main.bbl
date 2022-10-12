@@ -1,3 +1,16 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{1}
+
+\bibitem{algebra-topology-sjer}
+Benjamin~Young Denis~Sjerve.
+\newblock Algebra toplogy, page 39.
+
+\bibitem{hastings2014self}
+Matthew~B Hastings, Grant~H Watson, and Roger~G Melko.
+\newblock Self-correcting quantum memories beyond the percolation threshold.
+\newblock {\em Physical review letters}, 112(7):070501, 2014.
+
+\bibitem{wiki-euler-characteristic}
+Wiki.
+\newblock Euler characteristic.
 
 \end{thebibliography}
