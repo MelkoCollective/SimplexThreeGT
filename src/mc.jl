@@ -6,7 +6,7 @@ function energy(cfs::CubicFaceSites, spins::AbstractVector)
     end    
 end
 
-Base.Base.@propagate_inbounds function local_energy(cfs::CubicFaceSites, cube_idx::Int, spins)
+Base.@propagate_inbounds function local_energy(cfs::CubicFaceSites, cube_idx::Int, spins)
     @boundscheck cube_idx ≤ size(cfs.labels, 1)
     return prod(1:ndims(cfs.hypercube)) do j
         spins[cfs.labels[cube_idx, j]]

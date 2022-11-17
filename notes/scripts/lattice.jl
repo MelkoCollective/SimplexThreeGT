@@ -19,26 +19,40 @@ end
 function cube(n::Int)
     s = ""
     function is_boundary(i, j, k)
-        return i == 0 || j == 0 || k == 0 ||
-            i == (n-1) || j == (n-1) || k == (n-1)
+        # return i == 0 || j == 0 || k == 0 ||
+        return i == (n-1) || j == (n-1) || k == (n-1)
     end
     
     for i in 1:n, j in 1:n, k in 1:n-1
         i,j,k = i-1,j-1,k-1
         dash = !(is_boundary(i, j, k) && is_boundary(i, j, k+1))
-        s *= draw("($i, $j, $k) -- ($i, $j, $(k+1))"; dash)
+        if !dash
+            s *= draw("($i, $j, $k) -- ($i, $j, $(k+1))"; dash)
+        end
     end
 
     for i in 1:n, j in 1:n-1, k in 1:n
         i,j,k = i-1,j-1,k-1
         dash = !(is_boundary(i, j, k) && is_boundary(i, j+1, k))
-        s *= draw("($i, $j, $k) -- ($i, $(j+1), $k)"; dash)
+        if !dash
+            s *= draw("($i, $j, $k) -- ($i, $(j+1), $k)"; dash)
+        end
     end
 
     for i in 1:n-1, j in 1:n, k in 1:n
         i,j,k = i-1,j-1,k-1
         dash = !(is_boundary(i, j, k) && is_boundary(i+1, j, k))
-        s *= draw("($i, $j, $k) -- ($(i+1), $j, $k)"; dash)
+        if !dash
+            s *= draw("($i, $j, $k) -- ($(i+1), $j, $k)"; dash)
+        end
+    end
+    return s
+end
+
+function cubic_tn(n::Int)
+    s = ""
+    for i in 0.5:n-0.5, j in 0.5:n-0.5, k in 0.5:n-1.5
+        s *= draw("($i,$j,$k) -- ($i,$j,$(k+1))")
     end
     return s
 end
@@ -66,4 +80,6 @@ img_dir(xs...) = normpath(joinpath(@__DIR__, "..", "images", xs...))
 square_lattice(4)|>clipboard
 cube(4)|>clipboard
 
-write(img_dir("cube.tex"), standalone(cube(3)))
+write(img_dir("tn-plaquette.tex"), standalone(square_lattice(4)))
+write(img_dir("tn-cube.tex"), standalone(cube(4)))
+clipboard(cubic_tn(4))
