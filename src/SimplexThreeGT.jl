@@ -1,9 +1,11 @@
 module SimplexThreeGT
 
 using Random: AbstractRNG
-export Hypercube, cube_labels
+using Combinatorics
+using ProgressLogging
+export CubicSpinMap, mcmc
 
-include("hypercube.jl")
+include("cells.jl")
 include("mc.jl")
 
 end
