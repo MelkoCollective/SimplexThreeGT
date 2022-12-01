@@ -11,13 +11,25 @@ for L in 4:2:16
     push!(ys, Cv)
 end
 
-plot(4:2:16, xs;
-    xlabel="L", ylabel="T_c",
-    xticks=4:2:16, yticks=0.9:0.1:1.8,
-    ylims=(0.9, 1.8),
-    title="L-T_c"
+using Interpolations
+
+interp = linear_interpolation(
+    reverse(1 ./(10:2:16)),
+    reverse(xs[4:end]),
+    extrapolation_bc=Line()
 )
-savefig("n4-T_c.png")
+
+
+plot(1 ./(10:2:16), xs[4:end];
+    xlabel="1/L", ylabel="T_c",
+    title="1/L-T_c",
+    ylims=(0.9, 1.6),
+    yticks=0.9:0.05:1.6,
+    legend=nothing
+)
+savefig("n4-L-T_c.png")
+
+
 
 (E, Cv) = deserialize("data/2022-12-01/samples/n4-L6.jls")
 _, idx = findmax(Cv)
