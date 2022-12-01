@@ -55,10 +55,19 @@ end
 
 function cubes(n::Int, L::Int)
     ret = Set(Set{NTuple{n, Int}}[])
-    @progress name="generating cubes" for coords in Iterators.product(ntuple(_->0:L-1, n-3)...)
+    if n > 3
+        @progress name="generating cubes" for coords in Iterators.product(ntuple(_->0:L-1, n-3)...)
+            for dims in combinations(1:n, 3)
+                d1,d2,d3 = dims
+                for each in cubes(coords, (d1,d2,d3), L)
+                    push!(ret, each)
+                end
+            end
+        end
+    else
         for dims in combinations(1:n, 3)
             d1,d2,d3 = dims
-            for each in cubes(coords, (d1,d2,d3), L)
+            for each in cubes((), (d1,d2,d3), L)
                 push!(ret, each)
             end
         end
@@ -74,7 +83,7 @@ function cube_labels(cubes::Set{Set{NTuple{N, Int}}}) where {N}
     return ret
 end
 
-function spin_labels(faces::Set{Set{NTuple{N, Int}}}) where N
+function face_labels(faces::Set{Set{NTuple{N, Int}}}) where N
     ret = Dict{Set{NTuple{N, Int}}, Int}()
     for (i, face) in enumerate(faces)
         ret[face] = i
@@ -82,37 +91,135 @@ function spin_labels(faces::Set{Set{NTuple{N, Int}}}) where N
     return ret
 end
 
-function spin_cube_map(spin_labels, cube_labels, faces, cubes)
+function thread_partition(nfaces::Int, nthreads::Int)
+    d, r = divrem(nfaces, nthreads)
+    sizes = map(1:nthreads) do idx
+        idx ≤ r && return d+1
+        return d
+    end
+    prev = 0; ranges = UnitRange{Int}[]
+    for each in cumsum(sizes)
+        push!(ranges, prev+1:each)
+        prev = each
+    end
+    return ranges
+end
+
+#TODO: replace this with kd-tree
+function spin_cube_map(face_labels, cube_labels, faces, cubes, nthreads::Int)
+    threaded_spin_to_cube = [Dict{Int, Set{Int}}() for _ in 1:nthreads]
+    threaded_cube_to_spin = [Dict{Int, Set{Int}}() for _ in 1:nthreads]
+    faces = collect(faces); cubes = collect(cubes) # convert Set to Vector
+    progress_counter = Threads.Atomic{Int}(0)
+    @withprogress name="spin_cube_map" begin
+        @sync begin
+            Threads.@spawn begin
+                while progress_counter[] < length(faces)
+                    @logprogress progress_counter[]/length(faces)
+                    sleep(0.1)
+                end
+            end
+            for (thread_idx, range) in enumerate(thread_partition(length(faces), nthreads))
+                Threads.@spawn let spin_to_cube = threaded_spin_to_cube[thread_idx],
+                        cube_to_spin = threaded_cube_to_spin[thread_idx]
+
+                    for f_idx in range
+                        f = faces[f_idx]
+                        Threads.atomic_add!(progress_counter, 1)
+                        neighbors = filter(cubes) do cube
+                            all(x->x in cube, f)
+                        end
+                        spin_to_cube[face_labels[f]] = Set([cube_labels[c] for c in neighbors])
+                
+                        for cube in neighbors
+                            cube_spins = get!(cube_to_spin, cube_labels[cube]) do
+                                Set(Int[])
+                            end
+                            push!(cube_spins, face_labels[f])
+                        end
+                    end
+                end
+            end
+        end
+    end
+
     spin_to_cube = Dict{Int, Set{Int}}()
     cube_to_spin = Dict{Int, Set{Int}}()
-
-    for f in faces
-        neighbors = filter(cubes) do cube
-            all(x->x in cube, f)
-        end
-        spin_to_cube[spin_labels[f]] = Set([cube_labels[c] for c in neighbors])
-
-        for cube in neighbors
-            cube_spins = get!(cube_to_spin, cube_labels[cube]) do
+    for spin_to_cube_thread in threaded_spin_to_cube
+        for (k, v) in spin_to_cube_thread
+            spin_cubes = spin_to_cube[k] = get!(spin_to_cube, k) do
                 Set(Int[])
             end
-            push!(cube_spins, spin_labels[f])
+            union!(spin_cubes, v)
+        end
+    end
+
+    for cube_to_spin_thread in threaded_cube_to_spin
+        for (cube, spins) in cube_to_spin_thread
+            cube_spins = cube_to_spin[cube] = get!(cube_to_spin, cube) do
+                Set(Int[])
+            end
+            union!(cube_spins, spins)
         end
     end
     return spin_to_cube, cube_to_spin
 end
 
-function spin_cube_map(n::Int, L::Int)
+function spin_cube_map_old(face_labels, cube_labels, faces, cubes, _::Int)
+    spin_to_cube = Dict{Int, Set{Int}}()
+    cube_to_spin = Dict{Int, Set{Int}}()
+
+    @withprogress name="spin_cube_map" for (f_idx, f) in enumerate(faces)
+        @logprogress f_idx/length(faces)
+        neighbors = filter(cubes) do cube
+            all(x->x in cube, f)
+        end
+        spin_to_cube[face_labels[f]] = Set([cube_labels[c] for c in neighbors])
+
+        for cube in neighbors
+            cube_spins = get!(cube_to_spin, cube_labels[cube]) do
+                Set(Int[])
+            end
+            push!(cube_spins, face_labels[f])
+        end
+    end
+    return spin_to_cube, cube_to_spin
+end
+
+function spin_cube_map(n::Int, L::Int, nthreads::Int)
     f = faces(n, L)
     c = cubes(n, L)
-    spin_to_cube, cube_to_spin = spin_cube_map(spin_labels(f), cube_labels(c), f, c)
+    spin_to_cube, cube_to_spin = spin_cube_map(
+        face_labels(f), cube_labels(c), f, c, nthreads)
     return spin_to_cube, cube_to_spin
 end
 
 struct CubicSpinMap
-    spin_to_cube::Dict{Int, Set{Int}}
-    cube_to_spin::Dict{Int, Set{Int}}
+    ndims::Int
+    L::Int
+    spin_to_cube::Vector{Set{Int}}
+    cube_to_spin::Vector{Set{Int}}
 end
 
-CubicSpinMap(n::Int, L::Int) = CubicSpinMap(spin_cube_map(n, L)...)
+function CubicSpinMap(n::Int, L::Int; nthreads::Int=Threads.nthreads())
+    spin_to_cube, cube_to_spin = spin_cube_map(n, L, nthreads)
+    spin_to_cube_vec = Vector{Set{Int}}(undef, length(spin_to_cube))
+    cube_to_spin_vec = Vector{Set{Int}}(undef, length(cube_to_spin))
+    for (k, v) in spin_to_cube
+        spin_to_cube_vec[k] = v
+    end
+    for (k, v) in cube_to_spin
+        cube_to_spin_vec[k] = v
+    end
+    return CubicSpinMap(n, L, spin_to_cube_vec, cube_to_spin_vec)
+end
+
 nspins(csp::CubicSpinMap) = length(csp.spin_to_cube)
+
+function Base.show(io::IO, ::MIME"text/plain", csm::CubicSpinMap)
+    println(io, "CubicSpinMap with:")
+    println(io, "  ndims: ", csm.ndims)
+    println(io, "  L: ", csm.L)
+    println(io, "  spin_to_cube: ", length(csm.spin_to_cube), " spins")
+    print(io, "  cube_to_spin: ", length(csm.cube_to_spin), " cubes")
+end
