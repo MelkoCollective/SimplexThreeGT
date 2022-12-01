@@ -99,6 +99,7 @@ function mcmc(csm::CubicSpinMap, Ts;
         nburns::Int=1000,
         nsamples::Int=20_000,
         nthrows::Int=10,
+        showprogress::Bool=false,
     )
 
     rng = MersenneTwister(seed)
@@ -106,10 +107,16 @@ function mcmc(csm::CubicSpinMap, Ts;
     E = energy(csm, spins)
     Es = Vector{Float64}(undef, length(Ts))
     Cvs = Vector{Float64}(undef, length(Ts))
-    @progress name="mcmc $(Threads.threadid())" for (T_idx, T) in enumerate(Ts)
-        E, Cv = mcmc_estimate(rng, csm, spins, T, E, nburns, nsamples, nthrows)
-        Es[T_idx] = E; Cvs[T_idx] = Cv
-        # @info "system info" threadid=Threads.threadid() T E Cv
+    if showprogress
+        @progress name="mcmc $(Threads.threadid())" for (T_idx, T) in enumerate(Ts)
+            E, Cv = mcmc_estimate(rng, csm, spins, T, E, nburns, nsamples, nthrows)
+            Es[T_idx] = E; Cvs[T_idx] = Cv
+        end
+    else
+        for (T_idx, T) in enumerate(Ts)
+            E, Cv = mcmc_estimate(rng, csm, spins, T, E, nburns, nsamples, nthrows)
+            Es[T_idx] = E; Cvs[T_idx] = Cv
+        end
     end
     return Es, Cvs
 end
@@ -128,7 +135,8 @@ function mcmc_threaded(csm::CubicSpinMap, Ts;
         Threads.@spawn begin
             Es_, Cvs_ = mcmc(csm, Ts;
                 seed=seed+thread_idx, nburns,
-                nsamples=nsamples_thread, nthrows
+                nsamples=nsamples_thread, nthrows,
+                showprogress=thread_idx in (1, 3, nthreads-2, nthreads),
             )
             Es[thread_idx] = Es_
             Cvs[thread_idx] = Cvs_
