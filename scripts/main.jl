@@ -25,6 +25,7 @@ cubes_dir(xs...) = data_dir("cubes", xs...)
         nburns::Int=10_000,
         nthrows::Int=50,
     )
+    @info "task info" ndims L nthreads seed nsamples nburns nthrows
     isdir(samples_dir()) || mkpath(samples_dir())
     isdir(cubes_dir()) || mkpath(cubes_dir())
     isdir(images_dir()) || mkpath(images_dir())
@@ -34,21 +35,27 @@ cubes_dir(xs...) = data_dir("cubes", xs...)
     if isfile(csm_file)
         csm = deserialize(csm_file)
     else
+        @info "generating cubic spin map"
         csm = CubicSpinMap(ndims, L; nthreads)
         serialize(csm_file, csm)
     end
 
+    @info "mcmc start"
     Ts = 10:-0.01:0.1
     Es, Cvs = mcmc_threaded(
         csm, Ts;
         seed, nsamples, nburns,
         nthrows, nthreads,
     )
+    @info "saving data"
     serialize(samples_dir("$task_name.jls"), (Es, Cvs))
+    @info "plotting start"
     plot(Ts, Cvs;
         xlabel="T", ylabel="Cv", title="Cv vs T ($(task_name))",
         xticks=0:0.5:10, legend=nothing,
     )
+    @info "saving image"
     savefig(images_dir("$task_name.png"))
+    @info "task done"
     return
 end
