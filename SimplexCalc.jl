@@ -90,7 +90,7 @@ function Cube_Label(Dim,L)
     # Second round
     i=0
     dims = ntuple(_->L, Dim)
-    for coords in Iterators.product(map(k->1:dims[k], dims)...)
+    for coords in Iterators.product(map(k->1:dims[k], 1:length(dims))...)
         i += 1
         for j = 1:Dim
             plane1 = L^(j-1)
@@ -163,11 +163,10 @@ using Random
 rng = MersenneTwister(1334);
 
 Dim = 3
-L = 3 
+L = 4
 
 Cube = Cube_Label_3D(Dim,L)  #One entry for every dimension
-#@show Cube
-
+display(Cube)
 Inverse = Invert_Cube_3D(Cube)
 #@show Inverse
 
@@ -175,13 +174,14 @@ Ncube = size(Cube,1) #Ncube = L^Dim
 Nspin = 3*Ncube
 
 #Spin = ones(Int,Nspin)
-Spin = rand(rng,[-1, 1], Nspin)
-
+Spin = rand(rng,(-1, 1), Nspin)
+@show sum(Spin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
+@show Energy
+
 
 for T = 4.6:-0.05:0.05
-
      #Equilibriate
      num_EQL = 50000
      for i = 1:num_EQL
@@ -214,8 +214,12 @@ for T = 4.6:-0.05:0.05
      
      #@show E_avg/num_MCS
      Cv = E2/num_MCS- (E_avg/num_MCS)^2
+     push!(Es, E_avg/num_MCS/Nspin)
+     push!(Cvs, Cv/Nspin/T/T)
      println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
 
 end #T loop
 
+# using UnicodePlots
+# UnicodePlots.lineplot(collect(1:length(Es)), Es)
 #println("Edlánat’e World")
