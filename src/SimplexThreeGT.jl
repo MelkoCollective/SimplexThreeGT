@@ -8,5 +8,6 @@ export CubicSpinMap, mcmc
 
 include("cells.jl")
 include("mc.jl")
+include("cli.jl")
 
 end
