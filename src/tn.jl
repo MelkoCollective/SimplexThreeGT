@@ -33,5 +33,4 @@ function contract_row(n::Int, T)
     return reshape(L, 2^(2n+1), 2)
 end
 
-L = reshape(contract_row(10, T), 2, 2^(20), 2)
-ein"iji->j"(L)
+reshape(contract_row(10, T), 2, 2^(20), 2)
