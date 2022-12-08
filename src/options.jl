@@ -17,7 +17,7 @@ export StorageInfo
 end
 
 function data_dir(st::StorageInfo, xs...)
-    path = joinpath(st.data_dir, join(st.tags, "-"))
+    path = pkgdir(SimplexThreeGT, st.data_dir, join(st.tags, "-"))
     return joinpath(guarantee_dir(path), xs...)
 end
 
