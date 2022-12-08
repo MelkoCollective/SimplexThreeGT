@@ -11,7 +11,7 @@ function template(type, d, L, nthreads::Int, mem::Int)
     #SBATCH -e logs/%j.err
     module load julia/1.8.1
     # julia --project -e "using Pkg; Pkg.instantiate()"
-    julia --project scripts/main.jl $type --task=task/$(d)d$(L)L.toml
+    julia --project --threads=$nthreads scripts/main.jl $type --task=task/$(d)d$(L)L.toml
     """
 end
 
