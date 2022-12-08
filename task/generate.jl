@@ -3,8 +3,8 @@ using Configurations
 using SimplexThreeGT
 
 for d in 3:6, L in 4:2:16
-    task = TaskInfo(;
-        seed=1234,
+    task = ChainTaskInfo(;
+        seed=UInt(1234),
         shape = ShapeInfo(;
             ndims=d,
             size=L
