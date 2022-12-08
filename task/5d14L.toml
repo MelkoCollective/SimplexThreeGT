@@ -1,0 +1,22 @@
+seed = 1234
+showprogress = false
+
+[shape]
+ndims = 5
+size = 14
+
+    [shape.storage]
+    data_dir = "data"
+    checkpoint = "checkpoint.txt"
+    tags = []
+
+[sample]
+nburns = 10000
+nsamples = 500000
+nthrows = 10
+observables = ["E", "E^2"]
+
+[temperature]
+start = 10.0
+step = -0.01
+stop = 0.1
