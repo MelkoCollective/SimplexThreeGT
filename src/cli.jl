@@ -13,17 +13,23 @@ using ..SimplexThreeGT:
 
 @cast function annealing(;task::ChainTaskInfo)
     mcmc = SimplexMCMC(task)
-    @info "annealing starts" task
-    with_logger(TerminalLogger()) do
-        annealing!(mcmc, task)
+    log_file = task_dir(task, "annealing.log")
+    open(log_file, "w") do io
+        with_logger(TerminalLogger(io; always_flush=true)) do
+            @info "annealing starts" task
+            annealing!(mcmc, task)
+        end
     end
     return
 end
 
 @cast function resample(;task::ChainTaskInfo)
-    @info "resample starts" task
-    with_logger(TerminalLogger()) do
-        SimplexThreeGT.resample(task)
+    log_file = task_dir(task, "annealing.log")
+    open(log_file, "w") do io
+        with_logger(TerminalLogger(io; always_flush=true)) do
+            @info "resample starts" task
+            SimplexThreeGT.resample(task)
+        end
     end
     return
 end
