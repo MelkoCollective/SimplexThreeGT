@@ -8,7 +8,7 @@ using InteractiveUtils
 using Pkg; Pkg.activate(dirname(dirname(@__FILE__)))
 
 # ╔═╡ 1a794950-769f-11ed-3329-75fd635dfc85
-using Statistics, CSV, DataFrames, Plots, Interpolations, SimplexThreeGT, Configurations
+using Statistics, CSV, DataFrames, Plots, Interpolations, SimplexThreeGT, Configurations, QuadGK
 
 # ╔═╡ b609b326-aaea-4b47-98af-9e5022e10c9f
 using SimplexThreeGT: task_dir, shape_dir
@@ -75,6 +75,17 @@ end
 # ╔═╡ 2b9725ed-a755-4050-a949-8c7892c091a8
 plot(df.temp, df.Cv, xlabel="T", ylabel="Cv", legend=nothing)
 
+# ╔═╡ 0546b4cf-e60e-450b-bae2-c910ff8fa9de
+2/3 * log(2)
+
+# ╔═╡ 8e0ff364-6f22-4dab-8f4b-b06e0695645d
+let interp = linear_interpolation(reverse(df.temp), reverse(df.Cv))
+	S,_ = quadgk(minimum(df.temp), maximum(df.temp), rtol=1e-8) do T
+    	interp(T)/T
+	end
+	log(2) - S
+end
+
 # ╔═╡ Cell order:
 # ╠═8dd1a53c-92f1-4666-b1e0-16166f615a1f
 # ╠═1a794950-769f-11ed-3329-75fd635dfc85
@@ -88,3 +99,5 @@ plot(df.temp, df.Cv, xlabel="T", ylabel="Cv", legend=nothing)
 # ╠═645dcabc-6a94-4e19-8d8b-efdbb875f75e
 # ╠═a556cd8f-031e-4bd9-b902-c7de720ba54b
 # ╠═2b9725ed-a755-4050-a949-8c7892c091a8
+# ╠═0546b4cf-e60e-450b-bae2-c910ff8fa9de
+# ╠═8e0ff364-6f22-4dab-8f4b-b06e0695645d
