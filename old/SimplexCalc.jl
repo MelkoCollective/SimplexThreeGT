@@ -180,7 +180,8 @@ Spin = rand(rng,(-1, 1), Nspin)
 Energy = Calc_Energy(Spin,Ncube)
 @show Energy
 
-
+Es = Float64[];
+Cvs = Float64[];
 for T = 4.6:-0.05:0.05
      #Equilibriate
      num_EQL = 50000
@@ -216,7 +217,7 @@ for T = 4.6:-0.05:0.05
      Cv = E2/num_MCS- (E_avg/num_MCS)^2
      push!(Es, E_avg/num_MCS/Nspin)
      push!(Cvs, Cv/Nspin/T/T)
-     println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
+     println(T," ",E_avg/num_MCS," ",E2/num_MCS)
 
 end #T loop
 

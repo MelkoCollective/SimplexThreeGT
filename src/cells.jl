@@ -201,6 +201,8 @@ struct CubicSpinMap
     cube_to_spin::Vector{Set{Int}}
 end
 
+CubicSpinMap(shape::ShapeInfo; kw...) = CubicSpinMap(shape.ndims, shape.size; kw...)
+
 function CubicSpinMap(n::Int, L::Int; nthreads::Int=Threads.nthreads())
     spin_to_cube, cube_to_spin = spin_cube_map(n, L, nthreads)
     spin_to_cube_vec = Vector{Set{Int}}(undef, length(spin_to_cube))
@@ -217,9 +219,14 @@ end
 nspins(csp::CubicSpinMap) = length(csp.spin_to_cube)
 
 function Base.show(io::IO, ::MIME"text/plain", csm::CubicSpinMap)
-    println(io, "CubicSpinMap with:")
-    println(io, "  ndims: ", csm.ndims)
-    println(io, "  L: ", csm.L)
-    println(io, "  spin_to_cube: ", length(csm.spin_to_cube), " spins")
-    print(io, "  cube_to_spin: ", length(csm.cube_to_spin), " cubes")
+    indent = get(io, :indent, 0)
+    tab(n=0) = " "^(indent+n)
+    print(xs...) = Base.print(io, tab(), xs...)
+    println(xs...) = Base.println(io, tab(), xs...)
+
+    println("CubicSpinMap with:")
+    println("  ndims: ", csm.ndims)
+    println("  L: ", csm.L)
+    println("  spin_to_cube: ", length(csm.spin_to_cube), " spins")
+    print(  "  cube_to_spin: ", length(csm.cube_to_spin), " cubes")
 end

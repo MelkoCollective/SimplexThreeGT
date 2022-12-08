@@ -1,4 +1,4 @@
 # SimplexThreeGT
 Simplex Three Gauge Theory Monte Carlo
 
-![CubesL3D3S3](D3S3_cube.png)
+![CubesL3D3S3](old/D3S3_cube.png)

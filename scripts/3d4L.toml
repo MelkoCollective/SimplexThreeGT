@@ -1,0 +1,23 @@
+uuid = "6cb55d7a-769b-11ed-1642-dfa06b9113b6"
+seed = 6386046511793212336
+showprogress = true
+
+[shape]
+ndims = 3
+size = 4
+
+[shape.storage]
+data_dir = "data"
+checkpoint = "checkpoint.txt"
+tags = []
+
+[sample]
+nburns = 10_000
+nsamples = 500_000
+nthrows = 10
+observables = ["E", "E^2"]
+
+[temperature]
+start = 4.6
+step = -0.01
+stop = 0.1
