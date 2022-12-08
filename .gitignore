@@ -6,6 +6,6 @@ notes/**/*.log
 notes/**/*.out
 notes/**/*.synctex.gz
 notes/**/*.toc
-
+scripts/slurm
 *.txt
 data
