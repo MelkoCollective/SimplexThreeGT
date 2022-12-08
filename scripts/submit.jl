@@ -39,11 +39,11 @@ end
     end
 end
 
-@cast function resample()
+@cast function resample(njobs::Int=1)
     slurm_dir = joinpath(dirname(@__FILE__), "slurm")
     ispath(slurm_dir) || mkpath(slurm_dir)
 
-    for d in 3:4, L in 4:2:16
+    for _ in 1:njobs, d in 3:4, L in 4:2:16
         open("scripts/slurm/resample_$(d)d$(L)L.sh", "w") do io
             print(io, template("resample", d, L, 1, 4))
         end
