@@ -230,3 +230,13 @@ function Base.show(io::IO, ::MIME"text/plain", csm::CubicSpinMap)
     println("  spin_to_cube: ", length(csm.spin_to_cube), " spins")
     print(  "  cube_to_spin: ", length(csm.cube_to_spin), " cubes")
 end
+
+function obtain_csm(shape::ShapeInfo)
+    csm_cache = shape_file(shape)
+    isfile(csm_cache) && return deserialize(csm_cache)
+    with_task_log(task, "csm-$(shape_name(shape))") do
+        csm = CubicSpinMap(shape)
+        serialize(csm_cache, csm)
+        return csm
+    end
+end

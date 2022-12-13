@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.16
+# v0.19.17
 
 using Markdown
 using InteractiveUtils
@@ -7,23 +7,29 @@ using InteractiveUtils
 # ╔═╡ 1a794950-769f-11ed-3329-75fd635dfc85
 using Statistics, CSV, DataFrames, Plots, Interpolations, Configurations, QuadGK, TOML
 
+# ╔═╡ ee8f152f-d621-4019-9fa5-c48d98db3e61
+task_id = "93cf78b4-7a6f-11ed-37ba-0945dd5ba9f5"
+
+# ╔═╡ dbf30094-e9b9-49c1-a49b-da9cb574f642
+resample_ids = []
+
 # ╔═╡ 013eab3c-60f4-4634-a450-afcd2eea9eda
-ndims, L, extra = 4, 4, true
+ndims, L, extra = 3, 4, true
 
 # ╔═╡ e7d97e7f-a1ff-44e5-a207-39d7e7d0f81c
 root = dirname(dirname(@__FILE__))
 
 # ╔═╡ 54159e2c-dfb5-4855-b6f6-c971a14aaddd
-data_dir(xs...) = joinpath(root, "data", xs...)
+data_dir(xs...) = joinpath(root, "data", "simplex-$(ndims)d-$L", xs...)
 
 # ╔═╡ 76435c08-a30b-44e0-8c54-6ebcff27474e
-task_dir(xs...) = joinpath(root, "task", xs...)
+task_dir(xs...) = joinpath(root, "tasks", xs...)
+
+# ╔═╡ 8a3adedb-8da7-4a06-b1a0-5dd017c34976
+annealing_dir(xs...) = data_dir("annealing", xs...)
 
 # ╔═╡ 5fd74dc0-1b12-4a68-a6ce-ea4995bb32fc
 d = TOML.parsefile(task_dir("$(ndims)d$(L)L.toml"));
-
-# ╔═╡ 392333a8-2dfa-48f6-b3e9-8c3b799e9560
-job_dir(xs...) = data_dir("simplex-$(ndims)d-$(L)", d["uuid"], xs...)
 
 # ╔═╡ d0759b6e-2139-407f-92b7-1e9b5ac63591
 function merge_temp(df::DataFrame)
@@ -39,22 +45,8 @@ function specific_heat!(df::DataFrame)
     return df
 end
 
-# ╔═╡ 97ec952d-495d-4391-a59d-19722f052ce9
-df = let csv_files = filter(endswith(".csv"), readdir(job_dir()))
-	csv_files = map(job_dir, csv_files)
-	if extra && isdir(job_dir("extra"))
-		extra_files = map(filter(endswith(".csv", readdir(job_dir("extra"))))) do each
-			job_dir("extra", each)
-		end
-		append!(csv_files, extra_files)
-	end
-
-	df = mapreduce(vcat, csv_files) do each
-		DataFrame(CSV.File(job_dir(each)))
-	end
-
-	specific_heat!(merge_temp(df))
-end
+# ╔═╡ b8436a88-0c58-4cb9-bceb-11e3bdf2c44a
+any(startswith(task_id), readdir(annealing_dir())) || error("cannot find task")
 
 # ╔═╡ 60f5b77c-3b88-4e8f-a2cc-49fe8a1c995e
 plot(df.temp, df.Cv, xlabel="T", ylabel="Cv", legend=nothing)
@@ -75,6 +67,35 @@ end
 
 # ╔═╡ 5030b32a-f9eb-4213-a304-af7ff7a0b8ef
 2/3 * log(2), T_c, R_S
+
+# ╔═╡ 474949a9-7572-4344-a729-4fbe918c98bc
+Base.show(io::IO, ::MIME{Symbol("image/svg+xml")}, x::AbstractVector{Union{}}) = Base.show(io, MIME{Symbol("text/plain")}(), x)
+
+# ╔═╡ dacdddfa-2113-43cc-88ed-4efd1d01a82a
+df = let file = annealing_dir("$task_id.csv")
+	df = DataFrame(CSV.File(file))
+	specific_heat!(merge_temp(df))
+end
+
+# ╔═╡ 97ec952d-495d-4391-a59d-19722f052ce9
+# ╠═╡ disabled = true
+#=╠═╡
+ df = let csv_files = filter(endswith(".csv"), readdir(job_dir()))
+	csv_files = map(job_dir, csv_files)
+	if extra && isdir(job_dir("extra"))
+		extra_files = map(filter(endswith(".csv", readdir(job_dir("extra"))))) do each
+			job_dir("extra", each)
+		end
+		append!(csv_files, extra_files)
+	end
+
+	df = mapreduce(vcat, csv_files) do each
+		DataFrame(CSV.File(job_dir(each)))
+	end
+
+	specific_heat!(merge_temp(df))
+end
+  ╠═╡ =#
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -103,7 +124,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.3"
 manifest_format = "2.0"
-project_hash = "f7f7415744ba7d93bf4b06a043203052a9253269"
+project_hash = "87ebc9c89bd037c64d2d2307431e6e2c825d3f6c"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1190,18 +1211,23 @@ version = "1.4.1+0"
 
 # ╔═╡ Cell order:
 # ╠═1a794950-769f-11ed-3329-75fd635dfc85
+# ╠═ee8f152f-d621-4019-9fa5-c48d98db3e61
+# ╠═dbf30094-e9b9-49c1-a49b-da9cb574f642
 # ╠═013eab3c-60f4-4634-a450-afcd2eea9eda
 # ╠═5030b32a-f9eb-4213-a304-af7ff7a0b8ef
 # ╠═60f5b77c-3b88-4e8f-a2cc-49fe8a1c995e
 # ╠═e7d97e7f-a1ff-44e5-a207-39d7e7d0f81c
 # ╠═54159e2c-dfb5-4855-b6f6-c971a14aaddd
 # ╠═76435c08-a30b-44e0-8c54-6ebcff27474e
+# ╠═8a3adedb-8da7-4a06-b1a0-5dd017c34976
 # ╠═5fd74dc0-1b12-4a68-a6ce-ea4995bb32fc
-# ╠═392333a8-2dfa-48f6-b3e9-8c3b799e9560
 # ╠═d0759b6e-2139-407f-92b7-1e9b5ac63591
 # ╠═ea719ce7-c7a7-4bb1-847c-384e6ed9c4f4
+# ╠═b8436a88-0c58-4cb9-bceb-11e3bdf2c44a
+# ╠═dacdddfa-2113-43cc-88ed-4efd1d01a82a
 # ╠═97ec952d-495d-4391-a59d-19722f052ce9
 # ╠═0e16b49f-39ee-4430-b957-eb4a6f3e63aa
 # ╠═5b1d3014-3d95-4cc4-87de-b1c1aacd6e4f
+# ╠═474949a9-7572-4344-a729-4fbe918c98bc
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
