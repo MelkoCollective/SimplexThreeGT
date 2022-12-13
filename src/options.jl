@@ -33,85 +33,41 @@ function shape_name(shape::ShapeInfo)
 end
 
 function shape_dir(shape::ShapeInfo, xs...)
-    guarantee_dir(data_dir(shape.storage, shape_name(shape)))
-    return data_dir(shape.storage, shape_name(shape), xs...)
+    guarantee_dir(data_dir(shape.storage, "shape"))
+    return data_dir(shape.storage, "shape", xs...)
+end
+
+function shape_file(shape::ShapeInfo)
+    shape_dir(shape, shape_name(shape) * ".jls")
 end
 
 export SamplingInfo
 @option struct SamplingInfo
-    nburns::Int = 50_000
+    nburns::Maybe{Int}
     nsamples::Int = 50_000
     nthrows::Int = 10
     observables::Vector{String} = ["E", "E^2"]
 end
 
-export ChainTaskInfo
-@option struct ChainTaskInfo
-    uuid::UUID = uuid1()
-    seed::UInt = rand(UInt)
-    showprogress::Bool = false
+export TaskInfo
+@option struct TaskInfo
+    seed::Int = Int(rand(UInt32))
+    uuid::Maybe{UUID} # UUID of the corresponding mcmc chain
+    repeat::Maybe{Int} # number of times to repeat the task
     shape::ShapeInfo
     sample::SamplingInfo = SamplingInfo()
     temperature::Schedule = Schedule()
-
-    function ChainTaskInfo(
-        uuid::UUID,
-        seed::UInt,
-        showprogress::Bool,
-        shape::ShapeInfo,
-        sample::SamplingInfo,
-        temperature::Schedule
-    )
-        task = new(
-            uuid,
-            seed,
-            showprogress,
-            shape,
-            sample,
-            temperature
-        )
-        # save sampling info
-        # we don't allow mix data with different
-        # sampling size
-        sample_toml = task_dir(task, "sample.toml")
-        if isfile(sample_toml)
-            sample_info = from_toml(SamplingInfo, sample_toml)
-            task.sample == sample_info || error("sample info mismatch")
-        else
-            to_toml(sample_toml, task.sample)
-        end
-        return task
-    end
 end
 
-function task_dir(task::ChainTaskInfo, xs...)
-    path = guarantee_dir(shape_dir(task.shape,
-        string(task.uuid)
+function task_dir(task::TaskInfo, xs...)
+    path = guarantee_dir(data_dir(
+        task.shape.storage,
+        shape_name(task.shape),
     ))
     return joinpath(path, xs...)
 end
 
-export TaskInfo
-@option struct TaskInfo
-    seed::UInt = rand(UInt)
-    showprogress::Bool = false
-    shape::ShapeInfo
-    sample::SamplingInfo = SamplingInfo()
-    temperature::Schedule = Schedule()
-end
-
-function ChainTaskInfo(task::TaskInfo, uuid::UUID = uuid1())
-    return ChainTaskInfo(
-        uuid,
-        task.seed,
-        task.showprogress,
-        task.shape,
-        task.sample,
-        task.temperature
-    )
-end
-
-function Base.show(io::IO, ::MIME"text/plain", options::Union{ChainTaskInfo, TaskInfo})
+function Base.show(io::IO, ::MIME"text/plain", options::TaskInfo)
     GarishPrint.pprint_struct(io, options)
 end
 
@@ -120,15 +76,15 @@ function guarantee_dir(path::String)
     return path
 end
 
-function temperatures(task::Union{ChainTaskInfo, TaskInfo})
+function temperatures(task::TaskInfo)
     return temperatures(task.temperature)
 end
 
-function Configurations.to_dict(::Type{ChainTaskInfo}, x::UUID)
+function Configurations.to_dict(::Type{TaskInfo}, x::UUID)
     return string(x)
 end
 
 function Configurations.from_dict(
-        ::Type{<:ChainTaskInfo}, ::OptionField{:uuid}, ::Type{UUID}, x::String)
+        ::Type{<:TaskInfo}, ::OptionField{:uuid}, ::Type{UUID}, x::String)
     return UUID(x)
 end

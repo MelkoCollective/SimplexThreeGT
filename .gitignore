@@ -9,3 +9,4 @@ notes/**/*.toc
 scripts/slurm
 *.txt
 data
+tasks

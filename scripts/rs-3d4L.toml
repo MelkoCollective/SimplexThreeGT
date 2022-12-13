@@ -1,4 +1,5 @@
-seed = 6386046511793212336
+uuid = "93cf78b4-7a6f-11ed-37ba-0945dd5ba9f5"
+repeat = 5
 
 [shape]
 ndims = 3
@@ -10,12 +11,11 @@ checkpoint = "checkpoint.txt"
 tags = []
 
 [sample]
-nburns = 10_000
-nsamples = 500
+nsamples = 500000
 nthrows = 10
 observables = ["E", "E^2"]
 
 [temperature]
-start = 4.6
+start = 2.5
 step = -0.01
 stop = 0.1
