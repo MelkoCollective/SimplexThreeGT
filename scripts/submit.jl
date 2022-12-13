@@ -102,7 +102,7 @@ end
             print(io, template("annealing", d, L, 1, 4))
         end
         @info "run(`sbatch scripts/slurm/annealing_$(d)d$(L)L.sh`)"
-        # run(`sbatch scripts/slurm/annealing_$(d)d$(L)L.sh`)
+        run(`sbatch scripts/slurm/annealing_$(d)d$(L)L.sh`)
     end
 end
 
