@@ -7,6 +7,7 @@ notes/**/*.out
 notes/**/*.synctex.gz
 notes/**/*.toc
 scripts/slurm
+scripts/task
 *.txt
 data
 tasks
