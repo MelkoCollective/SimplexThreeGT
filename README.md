@@ -20,7 +20,7 @@ First, we label all 0-cells of the hypercubic lattice.  There are $N_0$ of them,
 
 Second, we can label all 1-cells of the lattice, where there are $d$ edges eminating (in each positive direction) from each vertex $v$, so that $N_1 = d N_0$. Each edge can be eminated by picking a unit vector and labelling it with the pair $$c_1 = (v,\overrightarrow{x}_i),$$ for $i = 1 \ldots d$.
 
-Third, we can label all 2-cells of the lattice, by a vertex and a pair of basis vectors. $$c_2=(v,[\overrightarrow{x}_i, \overrightarrow{x}_j]),$$ where $i<j$.  Again, restricting 2-cells (faces) to point in only the positive direction, there are ${d}\choose{2}$ faces associated with each vertex. I.e. $N_2/N_0= d(d-1)/2$.
+Third, we can label all 2-cells of the lattice, by a vertex and a pair of basis vectors. $$c_2=(v,[\overrightarrow{x}_i, \overrightarrow{x}_j]), \hspace{5mm} i<j$$.  Again, restricting 2-cells (faces) to point in only the positive direction, there are ${d}\choose{2}$ faces associated with each vertex. I.e. $N_2/N_0= d(d-1)/2$.
 
 Finally, for 3-cells or cubes, labelling can be written as $$c_3 =(v,[\overrightarrow{x}_i, \overrightarrow{x}_j,\overrightarrow{x}_k]),$$ where $i<j<k$.  The number of 3-cells associated with each vertex for a $d$-dimensional hypercubic lattice is ${d}\choose{3}$, so $N_3/N_0 = d(d-1)(d-2)/6$.
 
