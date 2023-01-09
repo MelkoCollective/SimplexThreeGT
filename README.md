@@ -20,9 +20,9 @@ First, we label all 0-cells of the hypercubic lattice.  There are $N_0$ of them,
 
 Second, we can label all 1-cells of the lattice, where there are $d$ edges eminating (in each positive direction) from each vertex $v$, so that $N_1 = d N_0$. Each edge can be eminated by picking a unit vector and labelling it with the pair $$c_1 = (v,\overrightarrow{x}_i),$$ for $i = 1 \ldots d$.
 
-Third, we can label all 2-cells of the lattice, by a vertex and a pair of basis vectors. $$c_2=(v,[\overrightarrow{x}_i, \overrightarrow{x}_j]), \hspace{5mm} i<j$$.  Again, restricting 2-cells (faces) to point in only the positive direction, there are ${d}\choose{2}$ faces associated with each vertex. I.e. $N_2/N_0= d(d-1)/2$.
+Third, we can label all 2-cells of the lattice, by a vertex and a pair of basis vectors. $$c_2=(v,[\overrightarrow{x}_i, \overrightarrow{x}_j]),$$ and $i$ less than $j$.  Again, restricting 2-cells (faces) to point in only the positive direction, there are ${d}\choose{2}$ faces associated with each vertex. I.e. $N_2/N_0= d(d-1)/2$.
 
-Finally, for 3-cells or cubes, labelling can be written as $$c_3 =(v,[\overrightarrow{x}_i, \overrightarrow{x}_j,\overrightarrow{x}_k]),$$ where $i<j<k$.  The number of 3-cells associated with each vertex for a $d$-dimensional hypercubic lattice is ${d}\choose{3}$, so $N_3/N_0 = d(d-1)(d-2)/6$.
+Finally, for 3-cells or cubes, labelling can be written as $$c_3 =(v,[\overrightarrow{x}_i, \overrightarrow{x}_j,\overrightarrow{x}_k]),$$ where $i$ less than $j$ less than $k$.  The number of 3-cells associated with each vertex for a $d$-dimensional hypercubic lattice is ${d}\choose{3}$, so $N_3/N_0 = d(d-1)(d-2)/6$.
 
 For the Hamiltonian of interest, we must label all of the $2(p+1)$ interactions.  As an example, consider $p=1$, the usual Z2 gauge theory in $d$ dimensions with interactions defined on square plaquettes (2-cells). The sum $\sum_{c_{2}}$ runs over the labels $c_2$ above.  Each square plaquette has 4 edges, where the variables $\sigma$ live.  These are labelled by $$(v,\overrightarrow{x}_i) \\ (v,\overrightarrow{x}_k) \\ (v + \overrightarrow{x}_i,\overrightarrow{x}_k)\\ (v + \overrightarrow{x}_k,\overrightarrow{x}_i).$$ Note that each edge (1-cell) will be shared by some number of other plaquettes (2-cells) depending on the lattice dimension.
 
