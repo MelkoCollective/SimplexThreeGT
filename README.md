@@ -3,7 +3,7 @@ Simplex Three Gauge Theory Monte Carlo
 
 This repository contains code for the simulation of the 3-cell classical Z2 gauge theories. The Hamiltonians are constructed on $d$-dimensional hypercubic lattices out of Ising variables interacting on hypercubic "cells" or "simplices".  Specifically
 
-* 0-cell: a vertex
+* 0-cell: a point or vertex
 * 1-cell: a line or edge
 * 2-cell: a square plaquette or face
 * 3-cell: a cube
@@ -26,4 +26,4 @@ Finally, for 3-cells or cubes, labelling can be written as $$c_3 =(v,[\overright
 
 For the Hamiltonian of interest, we must label all of the $2(p+1)$ interactions.  As an example, consider $p=1$, the usual Z2 gauge theory in $d$ dimensions with interactions defined on square plaquettes (2-cells). The sum $\sum_{c_{2}}$ runs over the labels $c_2$ above.  Each square plaquette has 4 edges, where the variables $\sigma$ live.  Given a plaquette labelled by $c_2$ above, the four edges are labelled by $$(v,\overrightarrow{x}_i)$$ $$(v,\overrightarrow{x}_j)$$ $$(v + \overrightarrow{x}_i,\overrightarrow{x}_j)$$ $$(v + \overrightarrow{x}_j,\overrightarrow{x}_i)$$ Note that each edge (1-cell) will be shared by some number of other plaquettes (2-cells) depending on the lattice dimension.
 
-Similarly, consider $p=2$.  The sum $\sum_{c_{3}}$ now runs over all 3-cells, which are cubes with 6 faces (2-cells) each.  The degrees of freedom $\sigma$ lie on these 2-cells.  They can be labelled
+Similarly, consider $p=2$.  The sum $\sum_{c_{3}}$ now runs over all 3-cells, which are cubes with 6 faces (2-cells) each.  The degrees of freedom $\sigma$ lie on these 2-cells.  Given a cube (3-cell) eminating from a vertex (0-cell) with label $c_3$ above, the six faces (where $\sigma$ is defined) are labelled by $$(v,[\overrightarrow{x}_i,\overrightarrow{x}_j])$$ $$(v,[\overrightarrow{x}_i,\overrightarrow{x}_k])$$ $$(v,[\overrightarrow{x}_j,\overrightarrow{x}_k])$$ $$(v+\overrightarrow{x}_k,[\overrightarrow{x}_i,\overrightarrow{x}_j])$$ $$(v+\overrightarrow{x}_j,[\overrightarrow{x}_i,\overrightarrow{x}_k])$$ $$(v+\overrightarrow{x}_i,[\overrightarrow{x}_j,\overrightarrow{x}_k])$$ Note that each variable sigma will be shared by a number of other 3-cell Hamiltonian terms.
