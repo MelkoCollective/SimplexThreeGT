@@ -1,23 +1,23 @@
-function energy(csp::CubicSpinMap, spins::Vector{Int})
-    return sum(values(csp.cube_to_spin)) do cube_spins
-        return local_energy(cube_spins, spins)
+function energy(cm::CellMap, spins::Vector{Int})
+    return sum(values(cm.shape_attach)) do attach_spins
+        return local_energy(attach_spins, spins)
     end
 end
 
-function energy(csp::CubicSpinMap, spins::BitVector)
-    return sum(values(csp.cube_to_spin)) do cube_spins
-        return local_energy(cube_spins, spins)
+function energy(cm::CellMap, spins::BitVector)
+    return sum(values(cm.shape_attach)) do attach_spins
+        return local_energy(attach_spins, spins)
     end
 end
 
-function local_energy(cube_spins, spins::Vector{Int})
-    return -prod(cube_spins) do j
+function local_energy(attach_spins, spins::Vector{Int})
+    return -prod(attach_spins) do j
         @inbounds spins[j]
     end
 end
 
-function local_energy(cube_spins, spins::BitVector)
-    up_spins = sum(cube_spins) do j
+function local_energy(attach_spins, spins::BitVector)
+    up_spins = sum(attach_spins) do j
         @inbounds spins[j]
     end
     return isodd(up_spins) ? 1 : -1
@@ -50,7 +50,7 @@ end
 mutable struct SimplexMCMC{RNG, Observables <: Tuple}
     rng::RNG
     uuid::UUID
-    csm::CubicSpinMap
+    cm::CellMap
     state::MCMCState
     obs::Observables
 end
@@ -60,25 +60,25 @@ function rand_spins(rng, nspins)
 end
 
 function SimplexMCMC(;
-        csm::CubicSpinMap,
+        cm::CellMap,
         uuid::UUID = uuid1(),
         task::TaskInfo,
         temp::Real = task.temperature.start,
         seed::Integer = task.seed,
         rng::AbstractRNG = Xoshiro(seed),
-        spins = rand_spins(rng, nspins(csm)),
+        spins = rand_spins(rng, nspins(cm)),
     )
 
-    state = MCMCState(spins, temp, energy(csm, spins))
+    state = MCMCState(spins, temp, energy(cm, spins))
     obs = ntuple(length(task.sample.observables)) do i
         Observable(task.sample.observables[i])
     end
-    return SimplexMCMC(rng, uuid, csm, state, obs)
+    return SimplexMCMC(rng, uuid, cm, state, obs)
 end
 
 function SimplexMCMC(task::TaskInfo)
-    csm = obtain_csm(task.shape)
-    return SimplexMCMC(;csm, task)
+    cm = obtain_cm(task)
+    return SimplexMCMC(;cm, task)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", mcmc::SimplexMCMC)
@@ -87,7 +87,7 @@ function Base.show(io::IO, ::MIME"text/plain", mcmc::SimplexMCMC)
     println(io, "  State:")
     println(io, "    temperature: $(mcmc.state.temp)")
     println(io, "    energy: $(mcmc.state.energy)")
-    show(IOContext(io, :indent=>2), MIME"text/plain"(), mcmc.csm)
+    show(IOContext(io, :indent=>2), MIME"text/plain"(), mcmc.cm)
 end
 
 obs_names(mcmc::SimplexMCMC) = map(obs_name, mcmc.obs)
@@ -125,19 +125,19 @@ function finalize!(mcmc::SimplexMCMC, nsamples::Int)
     return mcmc
 end
 
-energy(mcmc::SimplexMCMC) = energy(mcmc.csm, mcmc.spins)
+energy(mcmc::SimplexMCMC) = energy(mcmc.cm, mcmc.spins)
 
 function energy_diff!(mcmc::SimplexMCMC, spin_idx::Int)
-    effected_cubes = mcmc.csm.spin_to_cube[spin_idx]
+    effected_cubes = mcmc.cm.attach_shape[spin_idx]
     E_old = sum(effected_cubes) do cube_idx
-        cube_spins = mcmc.csm.cube_to_spin[cube_idx]
+        cube_spins = mcmc.cm.shape_attach[cube_idx]
         local_energy(cube_spins, mcmc.state.spins)
     end
 
     @inbounds flip_spin!(mcmc.state.spins, spin_idx)
 
     E_new = sum(effected_cubes) do cube_idx
-        cube_spins = mcmc.csm.cube_to_spin[cube_idx]
+        cube_spins = mcmc.cm.shape_attach[cube_idx]
         local_energy(cube_spins, mcmc.state.spins)
     end
 
@@ -151,7 +151,7 @@ function metropolis_accept!(mcmc::SimplexMCMC, delta_E)
 end
 
 function mcmc_step!(mcmc::SimplexMCMC)
-    spin_idx = rand(mcmc.rng, 1:nspins(mcmc.csm))
+    spin_idx = rand(mcmc.rng, 1:nspins(mcmc.cm))
     delta_E = energy_diff!(mcmc, spin_idx) #flips spin
     if metropolis_accept!(mcmc, delta_E)
         mcmc.state.energy += delta_E
@@ -229,6 +229,18 @@ function with_task_log(f, task::TaskInfo, name::String)
     end
 end
 
+function obtain_cm(task::TaskInfo)
+    shape = task.shape
+    cm_cache = shape_file(shape)
+    isfile(cm_cache) && return deserialize(cm_cache)
+    with_task_log(task, "cm-$(shape_name(shape))") do
+        cm = face_cube_map(shape.ndims, shape.size)
+        serialize(cm_cache, cm)
+        return cm
+    end
+end
+
+
 function save_task_image(task::TaskInfo, uuid::UUID, tag::String="task")
     let path = task_dir(task, "$(tag)_images")
         ispath(path) || mkpath(path)
@@ -268,16 +280,16 @@ end
 function read_checkpoint(task::TaskInfo, seed=task.seed)
     isnothing(task.uuid) && error("expect a task uuid of preivous run")
 
-    csm_cache = shape_file(task.shape)
-    isfile(csm_cache) || error("csm cache not found")
-    csm = deserialize(csm_cache)
+    cm_cache = shape_file(task.shape)
+    isfile(cm_cache) || error("cell map cache not found")
+    cm = deserialize(cm_cache)
 
     checkpoints = let checkpoints_dir = task_dir(task, "checkpoints")
         ispath(checkpoints_dir) || error("no checkpoint file found")
         checkpoint_file = task_dir(task, "checkpoints", "$(task.uuid).checkpoint")
         isfile(checkpoint_file) || error("checkpoint file not found")
         open(task_dir(task, "checkpoints", checkpoint_file), "r") do f
-            find_checkpoint(f, temperatures(task), nspins(csm))
+            find_checkpoint(f, temperatures(task), nspins(cm))
         end
     end
 
@@ -287,7 +299,7 @@ function read_checkpoint(task::TaskInfo, seed=task.seed)
     for (temp, spins) in checkpoints
         mcmcs[temp] = SimplexMCMC(;
             rng=Xoshiro(rand(rng, UInt)),
-            csm,
+            cm,
             spins,
             temp,
             task,

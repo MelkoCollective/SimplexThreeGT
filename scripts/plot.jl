@@ -8,7 +8,7 @@ using InteractiveUtils
 using Statistics, CSV, DataFrames, Plots, Interpolations, Configurations, QuadGK, TOML
 
 # ╔═╡ ee8f152f-d621-4019-9fa5-c48d98db3e61
-task_id = "93cf78b4-7a6f-11ed-37ba-0945dd5ba9f5"
+task_id = "b0d2b1fe-9079-11ed-0132-bdc2027476e8"
 
 # ╔═╡ dbf30094-e9b9-49c1-a49b-da9cb574f642
 resample_ids = []
@@ -28,9 +28,6 @@ task_dir(xs...) = joinpath(root, "tasks", xs...)
 # ╔═╡ 8a3adedb-8da7-4a06-b1a0-5dd017c34976
 annealing_dir(xs...) = data_dir("annealing", xs...)
 
-# ╔═╡ 5fd74dc0-1b12-4a68-a6ce-ea4995bb32fc
-d = TOML.parsefile(task_dir("$(ndims)d$(L)L.toml"));
-
 # ╔═╡ d0759b6e-2139-407f-92b7-1e9b5ac63591
 function merge_temp(df::DataFrame)
     ops = map(filter(!isequal(:temp), propertynames(df))) do key
@@ -41,12 +38,13 @@ end
 
 # ╔═╡ ea719ce7-c7a7-4bb1-847c-384e6ed9c4f4
 function specific_heat!(df::DataFrame)
-    df.Cv = (df.var"E^2" - df.E.^2) ./ (df.temp.^2) ./ (L^ndims)
+    df.Cv = (df.var"E^2" - df.E.^2) ./ (df.temp.^2) ./ (3 * L^ndims)
     return df
 end
 
 # ╔═╡ b8436a88-0c58-4cb9-bceb-11e3bdf2c44a
-any(startswith(task_id), readdir(annealing_dir())) || error("cannot find task")
+# any(startswith(task_id), readdir(annealing_dir())) || error("cannot find task")
+# task_id = first(filter(endswith(".csv"), readdir(annealing_dir())))[1:end-4]
 
 # ╔═╡ 60f5b77c-3b88-4e8f-a2cc-49fe8a1c995e
 plot(df.temp, df.Cv, xlabel="T", ylabel="Cv", legend=nothing)
@@ -122,7 +120,7 @@ QuadGK = "~2.6.0"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.3"
+julia_version = "1.8.4"
 manifest_format = "2.0"
 project_hash = "87ebc9c89bd037c64d2d2307431e6e2c825d3f6c"
 
@@ -166,7 +164,7 @@ uuid = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 version = "0.10.8"
 
 [[deps.Cairo_jll]]
-deps = ["Artifacts", "Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
+deps = ["Artifacts", "Bzip2_jll", "CompilerSupportLibraries_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
 git-tree-sha1 = "4b859a208b2397a7a623a03449e4636bdb17bcf2"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.16.1+1"
@@ -222,7 +220,7 @@ version = "4.5.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "0.5.2+0"
+version = "1.0.1+0"
 
 [[deps.Configurations]]
 deps = ["ExproniconLite", "OrderedCollections", "TOML"]
@@ -377,9 +375,9 @@ version = "0.21.0+0"
 
 [[deps.Glib_jll]]
 deps = ["Artifacts", "Gettext_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Libiconv_jll", "Libmount_jll", "PCRE2_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "fb83fbe02fe57f2c068013aa94bcdf6760d3a7a7"
+git-tree-sha1 = "d3b3624125c1474292d0d8ed0f65554ac37ddb23"
 uuid = "7746bdde-850d-59dc-9ae8-88ece973131d"
-version = "2.74.0+1"
+version = "2.74.0+2"
 
 [[deps.Graphite2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -547,9 +545,9 @@ version = "1.42.0+0"
 
 [[deps.Libiconv_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "42b62845d70a619f063a7da093d995ec8e15e778"
+git-tree-sha1 = "c7cb1f5d892775ba13767a87c7ada0b980ea0a71"
 uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
-version = "1.16.1+1"
+version = "1.16.1+2"
 
 [[deps.Libmount_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1220,7 +1218,6 @@ version = "1.4.1+0"
 # ╠═54159e2c-dfb5-4855-b6f6-c971a14aaddd
 # ╠═76435c08-a30b-44e0-8c54-6ebcff27474e
 # ╠═8a3adedb-8da7-4a06-b1a0-5dd017c34976
-# ╠═5fd74dc0-1b12-4a68-a6ce-ea4995bb32fc
 # ╠═d0759b6e-2139-407f-92b7-1e9b5ac63591
 # ╠═ea719ce7-c7a7-4bb1-847c-384e6ed9c4f4
 # ╠═b8436a88-0c58-4cb9-bceb-11e3bdf2c44a

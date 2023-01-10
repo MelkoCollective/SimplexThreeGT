@@ -10,7 +10,7 @@ using Logging: with_logger
 using Serialization
 using Statistics
 using GarishPrint
-export CubicSpinMap, SimplexMCMC,
+export CellMap, SimplexMCMC,
     Observable, MCMCState, annealing!, resample,
     temperatures, nspins, collect_csv_samples,
     collect_samples
@@ -18,7 +18,8 @@ export CubicSpinMap, SimplexMCMC,
 include("options.jl")
 include("checkpoint.jl")
 include("cells.jl")
+include("cellmap.jl")
 include("mc.jl")
-include("cli.jl")
+# include("cli.jl")
 
 end
