@@ -9,7 +9,7 @@ guarantee_dir(path) = isdir(path) ? path : mkpath(path)
 
 function emit_csm_task(d, L)
     guarantee_dir(task_dir())
-    task = TaskInfo(;ndims=d, size=L)
+    task = ShapeInfo(;ndims=d, size=L)
     to_toml(task_dir("csm-$(d)d$(L)L.toml"), task)
     return
 end
