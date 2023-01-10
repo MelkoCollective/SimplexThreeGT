@@ -28,7 +28,7 @@ function emit_annealing_task(d, L)
             observables=["E", "E^2"]
         ),
         temperature = Schedule(;
-            start=10.0,
+            start=50.0,
             step=-0.01,
             stop=0.1
         )
