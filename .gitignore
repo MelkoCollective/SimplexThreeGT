@@ -12,3 +12,4 @@ scripts/task
 logs
 data
 tasks
+!/logs/README.md
