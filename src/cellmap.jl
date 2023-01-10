@@ -25,20 +25,24 @@ function CellMap(
     attach_shape_map = Dict{Int, Vector{Int}}()
     attach_labels = Dict{Vector{Point{ndims}}, Int}()
 
-    for shape in shapes
-        shape_id = shape_labels[shape]
-        for attach in attach_set
-            attach_points = shape[attach]
-            if haskey(attach_labels, attach_points)
-                attach_id = attach_labels[attach_points]
-            else
-                attach_id_count += 1
-                attach_id = attach_labels[attach_points] = attach_id_count
+    @withprogress name="generate cell map" begin
+        for shape in shapes
+            shape_id = shape_labels[shape]
+            for attach in attach_set
+                attach_points = shape[attach]
+                if haskey(attach_labels, attach_points)
+                    attach_id = attach_labels[attach_points]
+                else
+                    attach_id_count += 1
+                    attach_id = attach_labels[attach_points] = attach_id_count
+                end
+                push!(get!(shape_attach_map, shape_id, Int[]), attach_id)
+                push!(get!(attach_shape_map, attach_id, Int[]), shape_id)
             end
-            push!(get!(shape_attach_map, shape_id, Int[]), attach_id)
-            push!(get!(attach_shape_map, attach_id, Int[]), shape_id)
+
+            @logprogress 1/length(shapes)
         end
-    end
+    end # withprogress
     return CellMap(ndims, L, p, shape_attach_map, attach_shape_map)
 end
 

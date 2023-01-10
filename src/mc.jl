@@ -220,20 +220,26 @@ function record(f, data_file::String)
     end
 end
 
-function with_task_log(f, task::TaskInfo, name::String)
-    path = task_dir(task, "logs")
+function with_path_log(f, path::String, name::String)
     ispath(path) || mkpath(path)
-    log_file = task_dir(task, "logs", "$name.log")
+    log_file = joinpath(path, "$name.log")
     return open(log_file, "w") do io
         with_logger(f, TerminalLogger(io; always_flush=true))
     end
 end
 
-function obtain_cm(task::TaskInfo)
-    shape = task.shape
+function with_task_log(f, task::TaskInfo, name::String)
+    with_path_log(f, task_dir(task, "logs"), name)
+end
+
+function with_shape_log(f, shape::ShapeInfo, name::String)
+    with_path_log(f, shape_dir(shape, "logs"), name)
+end
+
+function obtain_cm(shape::ShapeInfo)
     cm_cache = shape_file(shape)
     isfile(cm_cache) && return deserialize(cm_cache)
-    with_task_log(task, "cm-$(shape_name(shape))") do
+    with_shape_log(shape, "cm-$(shape_name(shape))") do
         cm = face_cube_map(shape.ndims, shape.size)
         serialize(cm_cache, cm)
         return cm

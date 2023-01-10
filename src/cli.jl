@@ -6,13 +6,13 @@ using Configurations
 using TerminalLoggers: TerminalLogger
 using Logging: with_logger
 using ..SimplexThreeGT:
-    CubicSpinMap,
+    CellMap,
     SimplexThreeGT,
     TaskInfo,
     ShapeInfo, SamplingInfo, Schedule,
     shape_dir, task_dir,
     SimplexMCMC, annealing!,
-    obtain_csm
+    obtain_cm
 
 function with_task_log(f, task::TaskInfo, name::String)
     log_file = task_dir(task, "$name.log")
@@ -37,7 +37,7 @@ end
 
 @cast function csm(;task::ShapeInfo)
     @info "csm generating starts" task
-    obtain_csm(task)
+    obtain_cm(task)
     return
 end
 

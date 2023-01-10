@@ -20,6 +20,6 @@ include("checkpoint.jl")
 include("cells.jl")
 include("cellmap.jl")
 include("mc.jl")
-# include("cli.jl")
+include("cli.jl")
 
 end
