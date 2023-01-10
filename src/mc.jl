@@ -77,7 +77,7 @@ function SimplexMCMC(;
 end
 
 function SimplexMCMC(task::TaskInfo)
-    cm = obtain_cm(task)
+    cm = obtain_cm(task.shape)
     return SimplexMCMC(;cm, task)
 end
 
