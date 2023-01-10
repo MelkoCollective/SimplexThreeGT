@@ -8,13 +8,13 @@ using InteractiveUtils
 using Statistics, CSV, DataFrames, Plots, Interpolations, Configurations, QuadGK, TOML
 
 # ╔═╡ ee8f152f-d621-4019-9fa5-c48d98db3e61
-task_id = "b0d2b1fe-9079-11ed-0132-bdc2027476e8"
+task_id = "59a8a524-908c-11ed-2693-0b32525d16ba"
 
 # ╔═╡ dbf30094-e9b9-49c1-a49b-da9cb574f642
 resample_ids = []
 
 # ╔═╡ 013eab3c-60f4-4634-a450-afcd2eea9eda
-ndims, L, extra = 3, 4, true
+ndims, L, extra = 3, 12, true
 
 # ╔═╡ e7d97e7f-a1ff-44e5-a207-39d7e7d0f81c
 root = dirname(dirname(@__FILE__))
@@ -38,7 +38,8 @@ end
 
 # ╔═╡ ea719ce7-c7a7-4bb1-847c-384e6ed9c4f4
 function specific_heat!(df::DataFrame)
-    df.Cv = (df.var"E^2" - df.E.^2) ./ (df.temp.^2) ./ (3 * L^ndims)
+	nfaces = ndims * (ndims-1) / 2 * L^ndims
+    df.Cv = (df.var"E^2" - df.E.^2) ./ (df.temp.^2) ./ nfaces
     return df
 end
 
