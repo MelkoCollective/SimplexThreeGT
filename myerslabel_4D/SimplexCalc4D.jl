@@ -15,26 +15,36 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
 
     dict1 = Dict{Tuple,Int}();  #index mapping for 1-cells
     dict2 = Dict{Tuple,Int}();  #index mapping for 2-cells
+    dict3 = Dict{Tuple,Int}();  #index mapping for 3-cells
+    c1 = 0
+    c2 = 0
+    c3 = 0
     for v = 1:N0 #loop over the vertices
         for i = 1:Dim
+            c1 += 1
             Myers1 = (v,i)
-            dict1[Myers1] = (v-1)*Dim + i
+            dict1[Myers1] = c1
             for j = (i+1):Dim
+                c2 += 1
                 Myers2 = (v,i,j)
-                dict2[Myers2] = (v-1)*Dchoose2 + (i-1)*Dim + j
+                dict2[Myers2] = c2
+                for k = (j+1):Dim
+                    c3 += 1
+                    Myers3 = (v,i,j,k)
+                    dict3[Myers3] = c3
+                end
             end
         end
     end
 
     for v = 1:N0 #loop over the vertices
         for i = 1:Dim
-            #Myers1 = (i,j)
-            #in1 = get(dict1,Myers1,0)
-            #@show(in1)
             for j = (i+1):Dim
-            Myers2 = (v,i,j)
-            in2 = get(dict2,Myers2,0)
-            @show(Myers2,in2)
+                for k = (j+1):Dim
+                    Myers3 = (v,i,j,k)
+                    in3 = get(dict3,Myers3,0)
+                    @show(Myers3,in3)
+                end
             end
         end
     end
