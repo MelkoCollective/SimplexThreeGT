@@ -7,7 +7,7 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
     N0 = L^Dim               #number of vertices
     N1 = Dim*N0              #number of bonds
     Dchoose2=binomial(Dim,2)
-    N2 = Dchoose2*N0  #number of plaquettes is d choose 
+    N2 = Dchoose2*N0  #number of plaquettes 
     Dchoose3=binomial(Dim,3)
     N3 = Dchoose3*N0  #number of cubes
 
@@ -37,22 +37,64 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
         end
     end
 
+    ##DEBUG
+    #for v = 1:N0 #loop over the vertices
+    #    for i = 1:Dim
+    #        for j = (i+1):Dim
+    #            for k = (j+1):Dim
+    #                Myers3 = (v,i,j,k)
+    #                in3 = get(dict3,Myers3,0)
+    #                @show(Myers3,in3)
+    #            end
+    #        end
+    #    end
+    #end
+
+    #Next we need a data structure that, given v, gives v'(v,x) where v' = v+x_1, v' = v_x^2, etc.
+    vprime = zeros(Int,N0,4) #(v,i) where i = 1,2,3,4 for unit vectorsx_i
     for v = 1:N0 #loop over the vertices
-        for i = 1:Dim
-            for j = (i+1):Dim
-                for k = (j+1):Dim
-                    Myers3 = (v,i,j,k)
-                    in3 = get(dict3,Myers3,0)
-                    @show(Myers3,in3)
-                end
-            end
+        #@show(v,mod(v,L))
+        #@show(mod(v,L^2))
+        #@show(mod(v,L^3))
+        if (mod(v,L) != 0) #x-direction
+            vprime[v,1] = v + 1
+        else
+            vprime[v,1] = v - (L-1)
         end
+
+        if (mod(v-1,L^2) < (L^2-L) ) #y-direction
+            vprime[v,2] = v+L
+        else
+            #println("Y-edge")
+            vprime[v,2] = v - (L^2-L)
+        end
+
+        if (mod(v-1,L^3) < (L^3-L^2) ) #z-direction
+            vprime[v,3] = v+L^2
+        else
+            #println("Z-edge")
+            vprime[v,3] = v - (L^3-L^2)
+        end
+
+        if (mod(v-1,L^4) < (L^4-L^3) ) #z-direction
+            vprime[v,4] = v+L^3
+        else
+            vprime[v,4] = v - (L^4-L^3)
+        end
+        #@show(v,vprime[v,1],vprime[v,2],vprime[v,3],vprime[v,4])
     end
 
-    
+    for v = 1:N0 
+        @show(vprime[v,1])
+        @show(vprime[v,2])
+        @show(vprime[v,3])
+        @show(vprime[v,4])
+    end
+
     return
 
-    Cube = zeros(Int,Ncube,6)
+    
+    Cube = zeros(Int,N3,6) #all cubes have 6 faces 
 
     # First round 
     for i = 1:L^3
