@@ -127,7 +127,7 @@ end #Cube_Label_4D
 
 #------------------------------------------------
 
-function Invert_Cube_3D(Cube)
+function Invert_Cube_4D(Cube)
 
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -158,38 +158,6 @@ function Invert_Cube_3D(Cube)
 return Inverse
 end #Invert_Cube
 
-#------------------------------------------------
-
-function Cube_Label(Dim,L)
-
-    Ncube = L^Dim
-    Cube = zeros(Int,Ncube,2*Dim)
-
-    # First round 
-    for i = 1:Ncube
-        for j = 1:Dim
-            Cube[i,j] = Dim*(i-1) + j
-        end
-    end
-
-    # Second round
-    i=0
-    dims = ntuple(_->L, Dim)
-    for coords in Iterators.product(map(k->1:dims[k], 1:length(dims))...)
-        i += 1
-        for j = 1:Dim
-            plane1 = L^(j-1)
-            plane2 = L^(j)
-            if coords[j] == L
-                Cube[i,j+Dim] = Cube[i+plane1-plane2,j]
-            else
-                Cube[i,j+Dim] = Cube[i+plane1,j]
-            end
-        end
-    end
-    return Cube
-end
-
 #-----------------------Energy Calculations---------------------
 
 function Calc_Energy(Spin,Ncube)
@@ -217,14 +185,16 @@ function Elocal(C1,Spin)
     return prod1 
 end
 
-function Energy_Diff(Spin, snum, Inverse)
+function Energy_Diff(Spin, snum, Inverse) # This depends on dimension still
 
     Cube1 = Inverse[snum,1] 
     Cube2 = Inverse[snum,2] 
+    Cube3 = Inverse[snum,3] 
+    Cube4 = Inverse[snum,4] 
 
-    Eold = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) 
+    Eold = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
     Spin[snum] = - Spin[snum] 
-    Enew = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) 
+    Enew = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
 
     return Enew - Eold
 
@@ -259,26 +229,24 @@ N3 = binomial(Dim,3)*N0  #number of cubes
 Cube = Cube_Label_4D(Dim,L)  #One entry for every dimension
 
 #display(Cube)
-Inverse = Invert_Cube_3D(Cube)
+Inverse = Invert_Cube_4D(Cube)
 #@show Inverse
 
 Ncube = N3
 Nspin = N2
 
-exit()
-
 #Spin = ones(Int,Nspin)
 Spin = rand(rng,(-1, 1), Nspin)
-@show sum(Spin)
+#@show sum(Spin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
-@show Energy
+#@show Energy
 
 Es = Float64[];
 Cvs = Float64[];
 for T = 4.6:-0.05:0.05
      #Equilibriate
-     num_EQL = 50000
+     num_EQL = 10000
      for i = 1:num_EQL
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
@@ -292,7 +260,7 @@ for T = 4.6:-0.05:0.05
      E_avg = 0.
      E2 = 0.
      
-     num_MCS = 5000000
+     num_MCS = 500000
      for i = 1:num_MCS
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
@@ -311,7 +279,8 @@ for T = 4.6:-0.05:0.05
      Cv = E2/num_MCS- (E_avg/num_MCS)^2
      push!(Es, E_avg/num_MCS/Nspin)
      push!(Cvs, Cv/Nspin/T/T)
-     println(T," ",E_avg/num_MCS," ",E2/num_MCS)
+     #println(T," ",E_avg/num_MCS," ",E2/num_MCS)
+     println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
 
 end #T loop
 
