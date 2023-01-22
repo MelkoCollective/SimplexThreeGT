@@ -120,7 +120,37 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
     #    println(c3," ",Cube[c3,1]," ",Cube[c3,2]," ",Cube[c3,3]," ",Cube[c3,4]," ",Cube[c3,5]," ",Cube[c3,6])
     #end
 
-    return Cube
+    Star = zeros(Int,N1,6) #gauge stars have 6 faces in 4D ONLY
+    for v = 1:N0 #loop over the vertices
+        for i = 1:Dim
+            Myers1 = (v,i) #this is your bond
+            c1 = get(dict1,Myers1,0) 
+            for j = 1:Dim #loop over the rest of the bonds 
+                if i == j
+                    #do nothing
+                else if i<j
+                    Myers2=(v,j,i)
+                    Star[c1,1] = get(dict1,Myers2,0)
+                    Myers2=(vminus[v,j],j,i)
+                    Star[c1,2] = get(dict1,Myers2,0)
+                else if i>j
+                    Myers2=(v,i,j)
+                    Star[c1,3] = get(dict1,Myers2,0)
+                    Myers2=(vminus[v,j],i,j)
+                    Star[c1,4] = get(dict1,Myers2,0)
+                else
+                    @show("star error")
+                end
+
+            end
+        end
+    end
+
+    for c1 = 1:N1 
+        println(c1," ",Star[c1,1]," ",Star[c1,2]," ",Star[c1,3]," ",Star[c1,4]," ",Star[c1,5]," ",Star[c1,6])
+    end
+
+    return Cube, Star
 
 
 end #Cube_Label_4D
@@ -185,7 +215,7 @@ function Elocal(C1,Spin)
     return prod1 
 end
 
-function Energy_Diff(Spin, snum, Inverse) # This depends on dimension still
+function Single_Spin_Flip(Spin, snum, Inverse) # This depends on dimension still
 
     Cube1 = Inverse[snum,1] 
     Cube2 = Inverse[snum,2] 
@@ -198,7 +228,7 @@ function Energy_Diff(Spin, snum, Inverse) # This depends on dimension still
 
     return Enew - Eold
 
-end #Energy_Diff
+end #Single_Spin_Flip
 
 function MetropolisAccept(DeltaE,T,rng)
 
@@ -226,14 +256,15 @@ N2 = binomial(Dim,2)*N0  #number of plaquettes
 N3 = binomial(Dim,3)*N0  #number of cubes
 
 @show(Dim,L)
-Cube = Cube_Label_4D(Dim,L)  #One entry for every dimension
+Cube, Star = Cube_Label_4D(Dim,L)  #One entry for every dimension
 
 #display(Cube)
 Inverse = Invert_Cube_4D(Cube)
 #@show Inverse
 
-Ncube = N3
+Ncube = N3 #4D definitions
 Nspin = N2
+Nbond = N1
 
 #Spin = ones(Int,Nspin)
 Spin = rand(rng,(-1, 1), Nspin)
@@ -242,6 +273,13 @@ Spin = rand(rng,(-1, 1), Nspin)
 Energy = Calc_Energy(Spin,Ncube)
 #@show Energy
 
+#----Define a gauge flip
+
+bnum = rand(rng,1:Nbond)  
+
+
+exit()
+
 #Es = Float64[];
 #Cvs = Float64[];
 for T = 1.4:-0.01:0.99
@@ -249,7 +287,7 @@ for T = 1.4:-0.01:0.99
      num_EQL = 50000
      for i = 1:num_EQL
          snum = rand(rng,1:Nspin) 
-         DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
+         DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
          if MetropolisAccept(DeltaE,T,rng) == true 
              global Energy += DeltaE
          else
@@ -263,7 +301,7 @@ for T = 1.4:-0.01:0.99
      num_MCS = 4000000
      for i = 1:num_MCS
          snum = rand(rng,1:Nspin) 
-         DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
+         DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
          if MetropolisAccept(DeltaE,T,rng) == true 
              global Energy += DeltaE
          else
