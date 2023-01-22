@@ -242,11 +242,11 @@ Spin = rand(rng,(-1, 1), Nspin)
 Energy = Calc_Energy(Spin,Ncube)
 #@show Energy
 
-Es = Float64[];
-Cvs = Float64[];
-for T = 4.6:-0.05:0.05
+#Es = Float64[];
+#Cvs = Float64[];
+for T = 1.4:-0.01:0.99
      #Equilibriate
-     num_EQL = 10000
+     num_EQL = 50000
      for i = 1:num_EQL
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
@@ -260,7 +260,7 @@ for T = 4.6:-0.05:0.05
      E_avg = 0.
      E2 = 0.
      
-     num_MCS = 2000000
+     num_MCS = 4000000
      for i = 1:num_MCS
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
@@ -277,8 +277,8 @@ for T = 4.6:-0.05:0.05
      
      #@show E_avg/num_MCS
      Cv = E2/num_MCS- (E_avg/num_MCS)^2
-     push!(Es, E_avg/num_MCS/Nspin)
-     push!(Cvs, Cv/Nspin/T/T)
+     #push!(Es, E_avg/num_MCS/Nspin)
+     #push!(Cvs, Cv/Nspin/T/T)
      #println(T," ",E_avg/num_MCS," ",E2/num_MCS)
      println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
 
