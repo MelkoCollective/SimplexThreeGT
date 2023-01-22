@@ -84,56 +84,48 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
         #@show(v,vprime[v,1],vprime[v,2],vprime[v,3],vprime[v,4])
     end
 
-    for v = 1:N0 
-        @show(vprime[v,1])
-        @show(vprime[v,2])
-        @show(vprime[v,3])
-        @show(vprime[v,4])
-    end
+#    for v = 1:N0 
+#        @show(vprime[v,1])
+#        @show(vprime[v,2])
+#        @show(vprime[v,3])
+#        @show(vprime[v,4])
+#    end
 
-    return
-
-    
     Cube = zeros(Int,N3,6) #all cubes have 6 faces 
-
-    # First round 
-    for i = 1:L^3
-        Cube[i,1] = Dim*(i-1) + 1
-        Cube[i,2] = Dim*(i-1) + 2
-        Cube[i,3] = Dim*(i-1) + 3
+    for v = 1:N0 #loop over the vertices
+        for i = 1:Dim
+            for j = (i+1):Dim
+                for k = (j+1):Dim
+                    Myers3 = (v,i,j,k)
+                    #First 3 faces
+                    c3 = get(dict3,Myers3,0) 
+                    Myers2=(v,i,j)
+                    Cube[c3,1]= get(dict2,Myers2,0)
+                    Myers2=(v,i,k)
+                    Cube[c3,2]= get(dict2,Myers2,0)
+                    Myers2=(v,j,k)
+                    Cube[c3,3]= get(dict2,Myers2,0)
+                    #second 3 faces
+                    Myers2=(vprime[v,k],i,j)
+                    Cube[c3,4]= get(dict2,Myers2,0)
+                    Myers2=(vprime[v,j],i,k)
+                    Cube[c3,5]= get(dict2,Myers2,0)
+                    Myers2=(vprime[v,i],j,k)
+                    Cube[c3,6]= get(dict2,Myers2,0)
+                end
+            end
+        end
     end
 
-    # Second round 
-    i = 0
-    for z=1:L
-        for y=1:L
-            for x=1:L
-                i += 1
-                if (x==L) #X-NEIGHBOR
-                    Cube[i,4] = Cube[i+1-L,1]
-                else
-                    Cube[i,4] = Cube[i+1,1]
-                end
-                if (y==L) #Y-NEIGHBOR
-                    Cube[i,5] =  Cube[i+L-L^2,2]
-                else
-                    Cube[i,5] =  Cube[i+L,2]
-                end
-                if (z==L) #Z-NEIGHBOR
-                    Cube[i,6] = Cube[i+L^2-L^3,3]
-                else
-                    Cube[i,6] = Cube[i+L^2,3]
-                end
-             end #x
-        end #y
-    end #z
+    #@show(Cube)
+    for c3 = 1:N3
+        println(c3," ",Cube[c3,1]," ",Cube[c3,2]," ",Cube[c3,3]," ",Cube[c3,4]," ",Cube[c3,5]," ",Cube[c3,6])
+    end
+
+    return Cube
 
 
-#   println(Cube)
-
-return Cube
-
-end #Cube_Label_3D
+end #Cube_Label_4D
 
 #------------------------------------------------
 
