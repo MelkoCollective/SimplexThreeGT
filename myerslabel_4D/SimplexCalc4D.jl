@@ -4,12 +4,10 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
         println("ERROR Dim")
     end
 
-    N0 = L^Dim               #number of vertices
-    N1 = Dim*N0              #number of bonds
-    Dchoose2=binomial(Dim,2)
-    N2 = Dchoose2*N0  #number of plaquettes 
-    Dchoose3=binomial(Dim,3)
-    N3 = Dchoose3*N0  #number of cubes
+    N0 = L^Dim  #number of vertices
+    N1 = Dim*N0 #number of bonds
+    N2 = binomial(Dim,2)*N0  #number of plaquettes 
+    N3 = binomial(Dim,3)*N0  #number of cubes
 
     @show(N3,N2,N1,N0)
 
@@ -118,9 +116,9 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
     end
 
     #@show(Cube)
-    for c3 = 1:N3
-        println(c3," ",Cube[c3,1]," ",Cube[c3,2]," ",Cube[c3,3]," ",Cube[c3,4]," ",Cube[c3,5]," ",Cube[c3,6])
-    end
+    #for c3 = 1:N3
+    #    println(c3," ",Cube[c3,1]," ",Cube[c3,2]," ",Cube[c3,3]," ",Cube[c3,4]," ",Cube[c3,5]," ",Cube[c3,6])
+    #end
 
     return Cube
 
@@ -131,10 +129,15 @@ end #Cube_Label_4D
 
 function Invert_Cube_3D(Cube)
 
-    Ncube = size(Cube,1) 
-    Nspin = 3*Ncube
+    N0 = L^Dim  #number of vertices
+    N1 = Dim*N0 #number of bonds
+    N2 = binomial(Dim,2)*N0  #number of plaquettes 
+    N3 = binomial(Dim,3)*N0  #number of cubes
 
-    Inverse = zeros(Int,Nspin,2) #each cube shares 2 spins in 3D
+    Ncube = N3
+    Nspin = N2
+
+    Inverse = zeros(Int,Nspin,4) #each cube shares 2 spins in 3D, and 4 in 4D
 
     for i = 1:Ncube
         for j = 1:6
@@ -142,7 +145,11 @@ function Invert_Cube_3D(Cube)
                 Inverse[Cube[i,j],1] = i
             elseif Inverse[Cube[i,j],2] == 0 
                 Inverse[Cube[i,j],2] = i 
-            else 
+             elseif Inverse[Cube[i,j],3] == 0 
+                Inverse[Cube[i,j],3] = i 
+              elseif Inverse[Cube[i,j],4] == 0 
+                Inverse[Cube[i,j],4] = i 
+         else 
                 println("Inverse Error")
             end
         end
@@ -243,16 +250,22 @@ rng = MersenneTwister(1334);
 Dim = 4
 L = 3
 
+N0 = L^Dim  #number of vertices
+N1 = Dim*N0 #number of bonds
+N2 = binomial(Dim,2)*N0  #number of plaquettes 
+N3 = binomial(Dim,3)*N0  #number of cubes
+
 @show(Dim,L)
 Cube = Cube_Label_4D(Dim,L)  #One entry for every dimension
-exit()
 
-display(Cube)
+#display(Cube)
 Inverse = Invert_Cube_3D(Cube)
 #@show Inverse
 
-Ncube = size(Cube,1) #Ncube = L^Dim
-Nspin = 3*Ncube
+Ncube = N3
+Nspin = N2
+
+exit()
 
 #Spin = ones(Int,Nspin)
 Spin = rand(rng,(-1, 1), Nspin)
