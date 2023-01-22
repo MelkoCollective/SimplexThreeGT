@@ -30,6 +30,16 @@ Similarly, consider $p=2$.  The sum $\sum_{c_{3}}$ now runs over all 3-cells, wh
 
 Similarly, consider $p=2$.  The sum $\sum_{c_{3}}$ now runs over all 3-cells, which are cubes with 6 faces (2-cells) each.  The degrees of freedom $\sigma$ lie on these 2-cells.  Given a cube (3-cell) eminating from a vertex (0-cell) with label $c_3$ above, the six faces (where $\sigma$ is defined) are labelled by $$(v,[\overrightarrow{x}_i,\overrightarrow{x}_j])$$ $$(v,[\overrightarrow{x}_i,\overrightarrow{x}_k])$$ $$(v,[\overrightarrow{x}_j,\overrightarrow{x}_k])$$ $$(v+\overrightarrow{x}_k,[\overrightarrow{x}_i,\overrightarrow{x}_j])$$ $$(v+\overrightarrow{x}_j,[\overrightarrow{x}_i,\overrightarrow{x}_k])$$ $$(v+\overrightarrow{x}_i,[\overrightarrow{x}_j,\overrightarrow{x}_k])$$ Note that each variable sigma will be shared by a number of other 3-cell Hamiltonian terms.
 
-## Topology
+## Useful number
 
+For $d=4$, $T_c = 1.05$ from duality to the 4D Ising model.
+
+## References
+
+The last numerical study of the D=4 model in 1994
+https://www.sciencedirect.com/science/article/abs/pii/0370269394901651?via%3Dihub
+which has been cited 6 times:
+https://ui.adsabs.harvard.edu/abs/1994PhLB..333..445B/citations
+
+# Topology
 https://www.iue.tuwien.ac.at/phd/heinzl/node17.html

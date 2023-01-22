@@ -260,7 +260,7 @@ for T = 4.6:-0.05:0.05
      E_avg = 0.
      E2 = 0.
      
-     num_MCS = 500000
+     num_MCS = 2000000
      for i = 1:num_MCS
          snum = rand(rng,1:Nspin) 
          DeltaE = Energy_Diff(Spin, snum, Inverse) #flips spin
