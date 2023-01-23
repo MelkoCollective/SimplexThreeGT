@@ -252,6 +252,25 @@ function Single_Spin_Flip(Spin, snum, Inverse) # This depends on dimension still
 
 end #Single_Spin_Flip
 
+function Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+
+    Eold = 0
+    Enew = 0
+    for pcount = 1:6
+        snum = Star[bnum,pcount]
+        Cube1 = Inverse[snum,1] 
+        Cube2 = Inverse[snum,2] 
+        Cube3 = Inverse[snum,3] 
+        Cube4 = Inverse[snum,4] 
+        Eold += -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
+        Spin[snum] = - Spin[snum] 
+        Enew += -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
+    end
+
+    return Enew - Eold
+
+end #Gague_Star_Flip
+
 function MetropolisAccept(DeltaE,T,rng)
 
     if DeltaE <= 0
@@ -298,6 +317,11 @@ Energy = Calc_Energy(Spin,Ncube)
 #----Define a gauge flip
 
 bnum = rand(rng,1:Nbond)  
+DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+@show(bnum,DeltaE)
+for i = 1:Nspin
+    println(Spin[i])
+end
 
 
 exit()
