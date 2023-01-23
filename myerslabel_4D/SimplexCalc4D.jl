@@ -289,7 +289,7 @@ using Random
 rng = MersenneTwister(1334);
 
 Dim = 4
-L = 3
+L = 4
 
 N0 = L^Dim  #number of vertices
 N1 = Dim*N0 #number of bonds
@@ -307,57 +307,76 @@ Ncube = N3 #4D definitions
 Nspin = N2
 Nbond = N1
 
-Spin = ones(Int,Nspin)
-#Spin = rand(rng,(-1, 1), Nspin)
+#Spin = ones(Int,Nspin)
+Spin = rand(rng,(-1, 1), Nspin)
 #@show sum(Spin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
 @show Energy
 
-#----Define a gauge flip
-
-bnum = rand(rng,1:Nbond)  
-DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
-@show(bnum,DeltaE)
-for i = 1:Nspin
-    println(Spin[i])
-end
-
-
-exit()
-
 #Es = Float64[];
 #Cvs = Float64[];
-for T = 1.4:-0.01:0.99
-     #Equilibriate
-     num_EQL = 50000
+for T = 1.2:-0.01:0.80
+     #Equ2libriate
+     num_EQL = 2000
      for i = 1:num_EQL
-         snum = rand(rng,1:Nspin) 
-         DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
-         if MetropolisAccept(DeltaE,T,rng) == true 
-             global Energy += DeltaE
-         else
-             Spin[snum] = - Spin[snum]  #flip the spin back
-         end
-     end #Equilibrate
-     
-     E_avg = 0.
-     E2 = 0.
-     
-     num_MCS = 4000000
-     for i = 1:num_MCS
-         snum = rand(rng,1:Nspin) 
-         DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
-         if MetropolisAccept(DeltaE,T,rng) == true 
-             global Energy += DeltaE
-         else
-             Spin[snum] = - Spin[snum]  #flip the spin back
-         end
-     
-         E_avg += Energy
-         E2 += Energy*Energy
-     
-     end #MCS
+        #---- Single Spin Flip
+        for j = 1:(Nspin÷2)
+             snum = rand(rng,1:Nspin) 
+             DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
+             if MetropolisAccept(DeltaE,T,rng) == true 
+                 global Energy += DeltaE
+             else
+                 Spin[snum] = - Spin[snum]  #flip the spin back
+             end
+        end
+        #---- Gauge Star Flip (6 spins)
+        for j = 1:(Nbond÷12)
+            bnum = rand(rng,1:Nbond)  
+            DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+            if MetropolisAccept(DeltaE,T,rng) == true 
+                global Energy += DeltaE
+            else
+               for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
+                   pnum = Star[pnum,pcount]
+                   Spin[pnum] = - Spin[pnum] 
+               end
+            end
+        end
+    end #Equilibrate
+
+    E_avg = 0.
+    E2 = 0.
+    num_MCS = 20000
+    for i = 1:num_MCS
+       #---- Single Spin Flip
+       for j = 1:(Nspin÷2)
+            snum = rand(rng,1:Nspin) 
+            DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
+            if MetropolisAccept(DeltaE,T,rng) == true 
+                global Energy += DeltaE
+            else
+                Spin[snum] = - Spin[snum]  #flip the spin back
+            end
+       end
+       #---- Gauge Star Flip (6 spins)
+       for j = 1:(Nbond÷12)
+           bnum = rand(rng,1:Nbond)  
+           DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+           if MetropolisAccept(DeltaE,T,rng) == true 
+               global Energy += DeltaE
+           else
+              for pcount = 1:6
+                  pnum = Star[bnum,pcount]
+                  Spin[pnum] = - Spin[pnum] 
+              end
+           end
+       end
+       #---- collect data
+       E_avg += Energy
+       E2 += Energy*Energy
+    
+    end #MCS
      
      #@show E_avg/num_MCS
      Cv = E2/num_MCS- (E_avg/num_MCS)^2
