@@ -49,44 +49,53 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
     #end
 
     #Next we need a data structure that, given v, gives v'(v,x) where v' = v+x_1, v' = v_x^2, etc.
-    vprime = zeros(Int,N0,4) #(v,i) where i = 1,2,3,4 for unit vectorsx_i
+    vplus = zeros(Int,N0,4) #(v,i) where i = 1,2,3,4 for unit vectorsx_i
+    vminus = zeros(Int,N0,4) # the v-x_i version for the gauge flip
     for v = 1:N0 #loop over the vertices
         #@show(v,mod(v,L))
         #@show(mod(v,L^2))
         #@show(mod(v,L^3))
         if (mod(v,L) != 0) #x-direction
-            vprime[v,1] = v + 1
+            vprime = v + 1
         else
-            vprime[v,1] = v - (L-1)
+            vprime = v - (L-1)
         end
+        vplus[v,1] = vprime
+        vminus[vprime,1] = v 
 
         if (mod(v-1,L^2) < (L^2-L) ) #y-direction
-            vprime[v,2] = v+L
+            vprime = v+L
         else
             #println("Y-edge")
-            vprime[v,2] = v - (L^2-L)
+            vprime = v - (L^2-L)
         end
+        vplus[v,2] = vprime
+        vminus[vprime,2] = v 
 
         if (mod(v-1,L^3) < (L^3-L^2) ) #z-direction
-            vprime[v,3] = v+L^2
+            vprime = v+L^2
         else
             #println("Z-edge")
-            vprime[v,3] = v - (L^3-L^2)
+            vprime = v - (L^3-L^2)
         end
+        vplus[v,3] = vprime
+        vminus[vprime,3] = v 
 
         if (mod(v-1,L^4) < (L^4-L^3) ) #z-direction
-            vprime[v,4] = v+L^3
+            vprime = v+L^3
         else
-            vprime[v,4] = v - (L^4-L^3)
+            vprime = v - (L^4-L^3)
         end
-        #@show(v,vprime[v,1],vprime[v,2],vprime[v,3],vprime[v,4])
+        vplus[v,4] = vprime
+        vminus[vprime,4] = v 
+       #@show(v,vplus[v,1],vplus[v,2],vplus[v,3],vplus[v,4])
     end
 
 #    for v = 1:N0 
-#        @show(vprime[v,1])
-#        @show(vprime[v,2])
-#        @show(vprime[v,3])
-#        @show(vprime[v,4])
+#        @show(vplus[v,1])
+#        @show(vplus[v,2])
+#        @show(vplus[v,3])
+#        @show(vplus[v,4])
 #    end
 
     Cube = zeros(Int,N3,6) #all cubes have 6 faces 
@@ -104,11 +113,11 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
                     Myers2=(v,j,k)
                     Cube[c3,3]= get(dict2,Myers2,0)
                     #second 3 faces
-                    Myers2=(vprime[v,k],i,j)
+                    Myers2=(vplus[v,k],i,j)
                     Cube[c3,4]= get(dict2,Myers2,0)
-                    Myers2=(vprime[v,j],i,k)
+                    Myers2=(vplus[v,j],i,k)
                     Cube[c3,5]= get(dict2,Myers2,0)
-                    Myers2=(vprime[v,i],j,k)
+                    Myers2=(vplus[v,i],j,k)
                     Cube[c3,6]= get(dict2,Myers2,0)
                 end
             end
@@ -125,30 +134,43 @@ function Cube_Label_4D(Dim,L) # ------Determine the indices of d=3 s=3
         for i = 1:Dim
             Myers1 = (v,i) #this is your bond
             c1 = get(dict1,Myers1,0) 
+            pcount = 0 #plaquette counter sould to from 1 to 6
             for j = 1:Dim #loop over the rest of the bonds 
                 if i == j
                     #do nothing
-                else if i<j
+                elseif j<i
                     Myers2=(v,j,i)
-                    Star[c1,1] = get(dict1,Myers2,0)
+                    pcount += 1
+                    Star[c1,pcount] = get(dict2,Myers2,0)
                     Myers2=(vminus[v,j],j,i)
-                    Star[c1,2] = get(dict1,Myers2,0)
-                else if i>j
+                    pcount += 1
+                    Star[c1,pcount] = get(dict2,Myers2,0)
+                elseif j>i
                     Myers2=(v,i,j)
-                    Star[c1,3] = get(dict1,Myers2,0)
+                    pcount += 1
+                    Star[c1,pcount] = get(dict2,Myers2,0)
                     Myers2=(vminus[v,j],i,j)
-                    Star[c1,4] = get(dict1,Myers2,0)
+                    pcount += 1
+                    Star[c1,pcount] = get(dict2,Myers2,0)
                 else
-                    @show("star error")
+                    @show("star error 1")
                 end
-
+            end
+            if pcount != 6 
+                @show("star error 2")
             end
         end
     end
 
-    for c1 = 1:N1 
-        println(c1," ",Star[c1,1]," ",Star[c1,2]," ",Star[c1,3]," ",Star[c1,4]," ",Star[c1,5]," ",Star[c1,6])
-    end
+#    for c1 = 1:N1 
+#        println(Star[c1,1])
+#        println(Star[c1,2])
+#        println(Star[c1,3])
+#        println(Star[c1,4])
+#        println(Star[c1,5])
+#        println(Star[c1,6])
+#    end
+#    println(Star[1,1]," ",Star[1,2]," ",Star[1,3]," ",Star[1,4]," ",Star[1,5]," ",Star[1,6])
 
     return Cube, Star
 
@@ -266,12 +288,12 @@ Ncube = N3 #4D definitions
 Nspin = N2
 Nbond = N1
 
-#Spin = ones(Int,Nspin)
-Spin = rand(rng,(-1, 1), Nspin)
+Spin = ones(Int,Nspin)
+#Spin = rand(rng,(-1, 1), Nspin)
 #@show sum(Spin)
 #Calculate initial energy
 Energy = Calc_Energy(Spin,Ncube)
-#@show Energy
+@show Energy
 
 #----Define a gauge flip
 
