@@ -1,3 +1,10 @@
+#!/usr/bin/env ion run --
+#=ion
+Comonicon = "1"
+Configurations = "0.17"
+SimplexThreeGT = {path=".."}
+=#
+
 using Comonicon
 using SimplexThreeGT
 using Configurations
