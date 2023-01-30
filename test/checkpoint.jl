@@ -1,10 +1,6 @@
 using Test
 using SimplexThreeGT: write_checkpoint, read_checkpoint, find_checkpoint, task_dir
 
-cp = "data/simplex-3d-4/769b77c6-7760-11ed-27b8-d750ade06f5f.checkpoint"
-f = open(cp)
-read_checkpoint(f, 4^3)
-
 d = Dict()
 for T in 10:-0.1:0.1
     d[T] = BitVector(rand(Bool, 10))
