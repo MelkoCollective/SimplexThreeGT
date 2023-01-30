@@ -1,11 +1,11 @@
 function energy(cm::CellMap, spins::Vector{Int})
-    return sum(values(cm.shape_attach)) do attach_spins
+    return sum(values(cm.p2p1)) do attach_spins
         return local_energy(attach_spins, spins)
     end
 end
 
 function energy(cm::CellMap, spins::BitVector)
-    return sum(values(cm.shape_attach)) do attach_spins
+    return sum(values(cm.p2p1)) do attach_spins
         return local_energy(attach_spins, spins)
     end
 end
@@ -30,6 +30,13 @@ end
 
 Base.@propagate_inbounds function flip_spin!(spins::BitVector, idx::Int)
     spins[idx] = !spins[idx]
+    return spins
+end
+
+Base.@propagate_inbounds function gauge_flip!(spins, cm::CellMap, edge_idx::Int)
+    for attach_spin in cm.p1p2[edge_idx]
+        flip_spin!(spins, attach_spin)
+    end
     return spins
 end
 
