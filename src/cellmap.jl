@@ -11,8 +11,8 @@ function Base.show(io::IO, ::MIME"text/plain", cm::CellMap)
     println(io, "CellMap ", cm.p[1], " <-> ", cm.p[2], ":")
     println(io, "  ndims: ", cm.ndims)
     println(io, "  L: ", cm.L)
-    println(io, "  $(cm.p[1])-cells: ", length(cm.p2p1))
-    print(io,   "  $(cm.p[2])-cells: ", length(cm.p1p2))
+    println(io, "  $(cm.p[1])-cells: ", length(cm.p1p2))
+    print(io,   "  $(cm.p[2])-cells: ", length(cm.p2p1))
 end
 
 function Base.:(==)(lhs::CellMap, rhs::CellMap)
@@ -56,4 +56,4 @@ function CellMap(
 end
 
 nspins(cm::CellMap) = length(cm.p1p2)
-face_cube_map(n::Int, L::Int) = CellMap(n, 2=>3, L)
+face_cube_map(n::Int, L::Int) = CellMap(n, L, (2, 3))

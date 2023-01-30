@@ -135,16 +135,16 @@ end
 energy(mcmc::SimplexMCMC) = energy(mcmc.cm, mcmc.spins)
 
 function energy_diff!(mcmc::SimplexMCMC, spin_idx::Int)
-    effected_cubes = mcmc.cm.attach_shape[spin_idx]
+    effected_cubes = mcmc.cm.p1p2[spin_idx]
     E_old = sum(effected_cubes) do cube_idx
-        cube_spins = mcmc.cm.shape_attach[cube_idx]
+        cube_spins = mcmc.cm.p2p1[cube_idx]
         local_energy(cube_spins, mcmc.state.spins)
     end
 
     @inbounds flip_spin!(mcmc.state.spins, spin_idx)
 
     E_new = sum(effected_cubes) do cube_idx
-        cube_spins = mcmc.cm.shape_attach[cube_idx]
+        cube_spins = mcmc.cm.p2p1[cube_idx]
         local_energy(cube_spins, mcmc.state.spins)
     end
 
@@ -248,6 +248,7 @@ function obtain_cm(shape::ShapeInfo)
     isfile(cm_cache) && return deserialize(cm_cache)
     with_shape_log(shape, "cm-$(shape_name(shape))") do
         cm = face_cube_map(shape.ndims, shape.size)
+        @debug "serializing cm to $cm_cache"
         serialize(cm_cache, cm)
         return cm
     end

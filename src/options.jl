@@ -1,12 +1,18 @@
 export Schedule
 @option struct Schedule
     start::Float64 = 10.0
-    step::Float64 = -0.1
+    step::Float64 = 0.1
     stop::Float64 = 0.1
+
+    function Schedule(start, step, stop)
+        start > stop || throw(ArgumentError("start must be greater than stop"))
+        step > 0 || throw(ArgumentError("step must be positive"))
+        return new(start, step, stop)
+    end
 end
 
 function temperatures(t::Schedule)
-    return t.start:t.step:t.stop
+    return t.start:-t.step:t.stop
 end
 
 export StorageInfo
