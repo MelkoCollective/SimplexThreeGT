@@ -36,7 +36,7 @@ function emit_annealing_task(d, L)
         ),
         temperature = Schedule(;
             start=50.0,
-            step=-0.01,
+            step=0.01,
             stop=0.1
         )
     )
