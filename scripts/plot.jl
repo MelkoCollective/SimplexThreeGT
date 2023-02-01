@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.17
+# v0.19.22
 
 using Markdown
 using InteractiveUtils
@@ -8,13 +8,16 @@ using InteractiveUtils
 using Statistics, CSV, DataFrames, Plots, Interpolations, Configurations, QuadGK, TOML
 
 # ╔═╡ ee8f152f-d621-4019-9fa5-c48d98db3e61
-task_id = "59a8a524-908c-11ed-2693-0b32525d16ba"
+task_id = "5d61f1c2-a19c-11ed-089b-730b25bb1c0c"
 
 # ╔═╡ dbf30094-e9b9-49c1-a49b-da9cb574f642
 resample_ids = []
 
 # ╔═╡ 013eab3c-60f4-4634-a450-afcd2eea9eda
-ndims, L, extra = 3, 12, true
+ndims, L, extra = 4, 10, true
+
+# ╔═╡ 01a5b0b5-0c4c-4bd8-8ab5-4608ca36d1ce
+
 
 # ╔═╡ e7d97e7f-a1ff-44e5-a207-39d7e7d0f81c
 root = dirname(dirname(@__FILE__))
@@ -47,34 +50,14 @@ end
 # any(startswith(task_id), readdir(annealing_dir())) || error("cannot find task")
 # task_id = first(filter(endswith(".csv"), readdir(annealing_dir())))[1:end-4]
 
-# ╔═╡ 60f5b77c-3b88-4e8f-a2cc-49fe8a1c995e
-plot(df.temp, df.Cv, xlabel="T", ylabel="Cv", legend=nothing)
-
-# ╔═╡ 0e16b49f-39ee-4430-b957-eb4a6f3e63aa
-T_c = let
-	_, idx = findmax(df.Cv)
-	df.temp[idx]
-end
-
-# ╔═╡ 5b1d3014-3d95-4cc4-87de-b1c1aacd6e4f
-R_S = let interp = linear_interpolation(reverse(df.temp), reverse(df.Cv))
-	S,_ = quadgk(minimum(df.temp), maximum(df.temp), rtol=1e-8) do T
-    	interp(T)/T
-	end
-	log(2) - S
-end
-
-# ╔═╡ 5030b32a-f9eb-4213-a304-af7ff7a0b8ef
-2/3 * log(2), T_c, R_S
-
-# ╔═╡ 474949a9-7572-4344-a729-4fbe918c98bc
-Base.show(io::IO, ::MIME{Symbol("image/svg+xml")}, x::AbstractVector{Union{}}) = Base.show(io, MIME{Symbol("text/plain")}(), x)
-
 # ╔═╡ dacdddfa-2113-43cc-88ed-4efd1d01a82a
 df = let file = annealing_dir("$task_id.csv")
 	df = DataFrame(CSV.File(file))
 	specific_heat!(merge_temp(df))
 end
+
+# ╔═╡ 60f5b77c-3b88-4e8f-a2cc-49fe8a1c995e
+plot(df.temp[4800:end], df.Cv[4800:end], xlabel="T", ylabel="Cv", legend=nothing)
 
 # ╔═╡ 97ec952d-495d-4391-a59d-19722f052ce9
 # ╠═╡ disabled = true
@@ -95,6 +78,26 @@ end
 	specific_heat!(merge_temp(df))
 end
   ╠═╡ =#
+
+# ╔═╡ 0e16b49f-39ee-4430-b957-eb4a6f3e63aa
+T_c = let
+	_, idx = findmax(df.Cv)
+	df.temp[idx]
+end
+
+# ╔═╡ 5b1d3014-3d95-4cc4-87de-b1c1aacd6e4f
+R_S = let interp = linear_interpolation(reverse(df.temp), reverse(df.Cv))
+	S,_ = quadgk(minimum(df.temp), maximum(df.temp), rtol=1e-8) do T
+    	interp(T)/T
+	end
+	log(2) - S
+end
+
+# ╔═╡ 5030b32a-f9eb-4213-a304-af7ff7a0b8ef
+2/3 * log(2), T_c, R_S
+
+# ╔═╡ 474949a9-7572-4344-a729-4fbe918c98bc
+Base.show(io::IO, ::MIME{Symbol("image/svg+xml")}, x::AbstractVector{Union{}}) = Base.show(io, MIME{Symbol("text/plain")}(), x)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -121,7 +124,7 @@ QuadGK = "~2.6.0"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.4"
+julia_version = "1.8.5"
 manifest_format = "2.0"
 project_hash = "87ebc9c89bd037c64d2d2307431e6e2c825d3f6c"
 
@@ -1215,6 +1218,7 @@ version = "1.4.1+0"
 # ╠═013eab3c-60f4-4634-a450-afcd2eea9eda
 # ╠═5030b32a-f9eb-4213-a304-af7ff7a0b8ef
 # ╠═60f5b77c-3b88-4e8f-a2cc-49fe8a1c995e
+# ╠═01a5b0b5-0c4c-4bd8-8ab5-4608ca36d1ce
 # ╠═e7d97e7f-a1ff-44e5-a207-39d7e7d0f81c
 # ╠═54159e2c-dfb5-4855-b6f6-c971a14aaddd
 # ╠═76435c08-a30b-44e0-8c54-6ebcff27474e
