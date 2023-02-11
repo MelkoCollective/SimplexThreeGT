@@ -35,7 +35,7 @@ export ShapeInfo
 end
 
 function shape_name(shape::ShapeInfo)
-    return "simplex-$(shape.ndims)d-$(shape.size)"
+    return "cm-$(shape.ndims)d-$(shape.size)"
 end
 
 function shape_dir(shape::ShapeInfo, xs...)
@@ -52,6 +52,8 @@ export SamplingInfo
     nburns::Maybe{Int}
     nsamples::Int = 50_000
     nthrows::Int = 10
+    gauge::Bool = true
+    gauge_nthrows::Int = 10
     observables::Vector{String} = ["E", "E^2"]
 end
 

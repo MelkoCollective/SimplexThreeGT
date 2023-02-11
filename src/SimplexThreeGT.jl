@@ -17,6 +17,7 @@ export CellMap, SimplexMCMC,
 
 include("options.jl")
 include("checkpoint.jl")
+include("log.jl")
 include("cells.jl")
 include("cellmap.jl")
 include("mc.jl")

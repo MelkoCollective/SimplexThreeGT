@@ -58,6 +58,7 @@ mutable struct SimplexMCMC{RNG, Observables <: Tuple}
     rng::RNG
     uuid::UUID
     cm::CellMap
+    gauge::Maybe{CellMap}
     state::MCMCState
     obs::Observables
 end
@@ -68,6 +69,7 @@ end
 
 function SimplexMCMC(;
         cm::CellMap,
+        guage::Maybe{CellMap} = nothing,
         uuid::UUID = uuid1(),
         task::TaskInfo,
         temp::Real = task.temperature.start,
@@ -80,12 +82,13 @@ function SimplexMCMC(;
     obs = ntuple(length(task.sample.observables)) do i
         Observable(task.sample.observables[i])
     end
-    return SimplexMCMC(rng, uuid, cm, state, obs)
+    return SimplexMCMC(rng, uuid, cm, guage, state, obs)
 end
 
 function SimplexMCMC(task::TaskInfo)
-    cm = obtain_cm(task.shape)
-    return SimplexMCMC(;cm, task)
+    cm = cell_map(task.shape, (2, 3)) # face <-> cube
+    gauge = task.sample.gauge ? cell_map(task.shape, (1, 2)) : nothing
+    return SimplexMCMC(;cm, gauge, task)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", mcmc::SimplexMCMC)
@@ -168,6 +171,20 @@ function mcmc_step!(mcmc::SimplexMCMC)
     return mcmc
 end
 
+function gauge_step!(mcmc::SimplexMCMC)
+    edge_idx = rand(mcmc.rng, 1:nedges(mcmc.cm))
+    delta_E = sum(mcmc.cm.p1p2[edge_idx]) do spin_idx
+        energy_diff!(mcmc, spin_idx) #flips spin
+    end
+
+    if metropolis_accept!(mcmc, delta_E)
+        mcmc.state.energy += delta_E
+    else
+        @inbounds gauge_flip!(mcmc.state.spins, mcmc.cm, edge_idx) #flip the spin back
+    end
+    return mcmc
+end
+
 function burn!(mcmc::SimplexMCMC, task::TaskInfo)
     for _ in 1:task.sample.nburns
         mcmc_step!(mcmc)
@@ -179,8 +196,12 @@ function sample!(mcmc::SimplexMCMC, task::TaskInfo)
     init!(mcmc)
 
     for _ in 1:task.sample.nsamples
-        for _ in 1:task.sample.nthrows
+        for _ in 1:nspins(mcmc.cm)÷2
             mcmc_step!(mcmc)
+        end
+
+        task.sample.gauge && for _ in 1:nspins(mcmc.gauge)÷2
+            gauge_step!(mcmc)
         end
         collect!(mcmc)
     end
@@ -226,34 +247,6 @@ function record(f, data_file::String)
         f(agent) # sampling process
     end
 end
-
-function with_path_log(f, path::String, name::String)
-    ispath(path) || mkpath(path)
-    log_file = joinpath(path, "$name.log")
-    return open(log_file, "w") do io
-        with_logger(f, TerminalLogger(io; always_flush=true))
-    end
-end
-
-function with_task_log(f, task::TaskInfo, name::String)
-    with_path_log(f, task_dir(task, "logs"), name)
-end
-
-function with_shape_log(f, shape::ShapeInfo, name::String)
-    with_path_log(f, shape_dir(shape, "logs"), name)
-end
-
-function obtain_cm(shape::ShapeInfo)
-    cm_cache = shape_file(shape)
-    isfile(cm_cache) && return deserialize(cm_cache)
-    with_shape_log(shape, "cm-$(shape_name(shape))") do
-        cm = face_cube_map(shape.ndims, shape.size)
-        @debug "serializing cm to $cm_cache"
-        serialize(cm_cache, cm)
-        return cm
-    end
-end
-
 
 function save_task_image(task::TaskInfo, uuid::UUID, tag::String="task")
     let path = task_dir(task, "$(tag)_images")

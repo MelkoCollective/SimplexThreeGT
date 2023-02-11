@@ -11,8 +11,7 @@ using ..SimplexThreeGT:
     TaskInfo,
     ShapeInfo, SamplingInfo, Schedule,
     shape_dir, task_dir,
-    SimplexMCMC, annealing!,
-    obtain_cm
+    SimplexMCMC, annealing!
 
 function with_task_log(f, task::TaskInfo, name::String)
     log_file = task_dir(task, "$name.log")
@@ -32,12 +31,6 @@ end
 @cast function resample(;task::TaskInfo)
     @info "resample starts" task
     SimplexThreeGT.resample(task)
-    return
-end
-
-@cast function csm(;task::ShapeInfo)
-    @info "csm generating starts" task
-    obtain_cm(task)
     return
 end
 

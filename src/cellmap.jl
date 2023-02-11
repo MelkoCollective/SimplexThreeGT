@@ -56,4 +56,15 @@ function CellMap(
 end
 
 nspins(cm::CellMap) = length(cm.p1p2)
-face_cube_map(n::Int, L::Int) = CellMap(n, L, (2, 3))
+face_cube_map(n::Int, L::Int) = cell_map(n, L, (2, 3))
+
+function cell_map(shape::ShapeInfo, p::Tuple{Int, Int})
+    cache = shape_name(shape, "cm") * "-$(p[1])-$(p[2]).jls"
+    isfile(cache) && return deserialize(cache)
+    with_shape_log(shape, "cm-$(p[1])-$(p[2])") do
+        cm = CellMap(shape.ndims, shape.size, p)
+        @debug "serializing cm to $cache"
+        serialize(cache, cm)
+        return cm
+    end
+end
