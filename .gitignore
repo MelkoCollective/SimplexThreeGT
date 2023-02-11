@@ -11,5 +11,6 @@ scripts/task
 *.txt
 logs
 data
+old_data
 tasks
 !/logs/README.md
