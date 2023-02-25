@@ -10,12 +10,19 @@ function energy(cm::CellMap, spins::BitVector)
     end
 end
 
+function energy_with_field(cm::CellMap, spins, lambda::Real)
+    energy(cm, spins) - lambda * sum_spins(spins)
+end
+
 function local_energy(attach_spins, spins::Vector{Int})
     return -prod(attach_spins) do j
         @inbounds spins[j]
     end
 end
 
+# NOTE: there are only even number of products of spins
+# thus we can use isodd to check the number of up spins
+# instead of counting them
 function local_energy(attach_spins, spins::BitVector)
     up_spins = sum(attach_spins) do j
         @inbounds spins[j]

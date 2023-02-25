@@ -13,7 +13,6 @@ mutable struct SimplexMCMC{RNG, Observables <: Tuple}
     obs::Observables
 end
 
-
 function SimplexMCMC(;
         cm::CellMap,
         guage::Maybe{CellMap} = nothing,

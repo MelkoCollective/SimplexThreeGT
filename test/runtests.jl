@@ -6,8 +6,7 @@ using SimplexThreeGT
 end
 
 @testset "cell" begin
-    include("cells.jl")
-    include("cellmap.jl")
+    include("homology/homology.jl")
 end
 
 @testset "mc" begin

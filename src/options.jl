@@ -1,3 +1,9 @@
+module Spec
+
+using GarishPrint: GarishPrint
+using UUIDs: UUID
+using Configurations: Configurations, @option, Maybe, OptionField
+
 export Schedule
 @option struct Schedule
     start::Float64 = 10.0
@@ -12,6 +18,10 @@ export Schedule
 end
 
 function temperatures(t::Schedule)
+    return t.start:-t.step:t.stop
+end
+
+function fields(t::Schedule)
     return t.start:-t.step:t.stop
 end
 
@@ -51,13 +61,14 @@ export SamplingInfo
 @option struct SamplingInfo
     nburns::Maybe{Int}
     nsamples::Int = 50_000
-    nthrows::Int = 10
+    nthrows::Maybe{Int}
     gauge::Bool = true
-    gauge_nthrows::Int = 10
+    gauge_nthrows::Maybe{Int}
     observables::Vector{String} = ["E", "E^2"]
 end
 
 export TaskInfo
+
 @option struct TaskInfo
     seed::Int = Int(rand(UInt32))
     uuid::Maybe{UUID} # UUID of the corresponding mcmc chain
@@ -65,6 +76,7 @@ export TaskInfo
     shape::ShapeInfo
     sample::SamplingInfo = SamplingInfo()
     temperature::Schedule = Schedule()
+    extern_field::Maybe{Schedule}
 end
 
 function task_dir(task::TaskInfo, xs...)
@@ -84,9 +96,8 @@ function guarantee_dir(path::String)
     return path
 end
 
-function temperatures(task::TaskInfo)
-    return temperatures(task.temperature)
-end
+temperatures(task::TaskInfo) = temperatures(task.temperature)
+fields(task::TaskInfo) = fields(task.external_field)
 
 function Configurations.to_dict(::Type{TaskInfo}, x::UUID)
     return string(x)
@@ -96,3 +107,5 @@ function Configurations.from_dict(
         ::Type{<:TaskInfo}, ::OptionField{:uuid}, ::Type{UUID}, x::String)
     return UUID(x)
 end
+
+end # module Spec
