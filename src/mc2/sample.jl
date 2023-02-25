@@ -34,6 +34,38 @@ function sample!(mc::MarkovChain, task::TaskInfo)
     return mc
 end
 
+function annealing!(mcmc::MarkovChain, task::TaskInfo)
+    isnothing(task.uuid) || error("annealing task should not have a uuid")
+    isnothing(task.repeat) || error("annealing task should not have a repeat")
+    isnothing(task.sample.nburns) && error("annealing task should have nburns")
+
+    save_task_image(task, mcmc.uuid)
+    ispath(task_dir(task, "annealing")) || mkpath(task_dir(task, "annealing"))
+    data_file = task_dir(task, "annealing", "$(mcmc.uuid).csv")
+
+    with_task_log(task, "annealing-$(mcmc.uuid)") do
+        checkpoint(mcmc, task) do checkpoint_agent
+            # NOTE: make sure the data is written to different
+            # files under same directory for different runs
+            record(data_file) do record_agent
+                @progress name="extern field" for h in fields(task)
+                    mcmc.state.field = h
+                    @progress name="annealing" for T in temperatures(task)
+                        mcmc.state.temp = T
+                        @debug "Temperature: $T (h=$h)"
+                        burn!(mcmc, task)
+                        sample!(mcmc, task)
+
+                        record_agent(mcmc)
+                        checkpoint_agent()
+                    end
+                end
+            end
+        end
+    end # with_task_log
+    return mcmc
+end
+
 function resample(task::TaskInfo)
     isnothing(task.repeat) && error("expect nrepeat specified")
     isnothing(task.uuid) && error("expect uuid specified")

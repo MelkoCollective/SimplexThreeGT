@@ -1,4 +1,4 @@
-function write_checkpoint(io::IO, mc::MarkovChain)
+function Checkpoint.write_checkpoint(io::IO, mc::MarkovChain)
     write_checkpoint(io, mc.state.temp, mc.state.spins)
     flush(io) # always flush after writing, so we can recover from a crash
     return
@@ -19,13 +19,13 @@ end
 function record(f, data_file::String)
     require_header = !isfile(data_file)
     open(data_file, "a+") do storage_io
-        function agent(mcmc)
+        function agent(mcmc::MarkovChain)
             if require_header
-                println(storage_io, "temp,", join(observable_names(mcmc), ","))
+                println(storage_io, "field,temp,", join(observable_names(mcmc), ","))
                 require_header = false
             end
 
-            print(storage_io, mcmc.state.temp)
+            print(storage_io, mcmc.state.field, ",", mcmc.state.temp)
             for obs in mcmc.obs
                 print(storage_io, ",", obs.value)
             end
@@ -41,38 +41,6 @@ function save_task_image(task::TaskInfo, uuid::UUID, tag::String="task")
         ispath(path) || mkpath(path)
     end
     to_toml(task_dir(task, "$(tag)_images", "$(uuid).toml"), task)
-end
-
-function annealing!(mcmc::MarkovChain, task::TaskInfo)
-    isnothing(task.uuid) || error("annealing task should not have a uuid")
-    isnothing(task.repeat) || error("annealing task should not have a repeat")
-    isnothing(task.sample.nburns) && error("annealing task should have nburns")
-
-    save_task_image(task, mcmc.uuid)
-    ispath(task_dir(task, "annealing")) || mkpath(task_dir(task, "annealing"))
-    data_file = task_dir(task, "annealing", "$(mcmc.uuid).csv")
-
-    with_task_log(task, "annealing-$(mcmc.uuid)") do
-        checkpoint(mcmc, task) do checkpoint_agent
-            # NOTE: make sure the data is written to different
-            # files under same directory for different runs
-            record(data_file) do record_agent
-                @progress name="extern field" for h in fields(task)
-                    mcmc.state.field = h
-                    @progress name="annealing" for T in temperatures(task)
-                        mcmc.state.temp = T
-                        @debug "Temperature: $T (h=$h)"
-                        burn!(mcmc, task)
-                        sample!(mcmc, task)
-
-                        record_agent(mcmc)
-                        checkpoint_agent()
-                    end
-                end
-            end
-        end
-    end # with_task_log
-    return mcmc
 end
 
 function read_checkpoint(task::TaskInfo, seed=task.seed)

@@ -6,7 +6,7 @@ using UUIDs: UUID
 using ProgressLogging: @progress
 using ..Homology: CellMap, nspins, cell_map
 using ..Spec: TaskInfo, ShapeInfo, SamplingInfo, Schedule, temperatures, fields, task_dir
-using ..Checkpoint: find_checkpoint
+using ..Checkpoint: Checkpoint, find_checkpoint, write_checkpoint
 using ..SimplexThreeGT: with_path_log
 
 function with_task_log(f, task::TaskInfo, name::String)
