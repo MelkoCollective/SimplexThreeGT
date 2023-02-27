@@ -8,11 +8,14 @@ struct CellMap
 end
 
 function Base.show(io::IO, ::MIME"text/plain", cm::CellMap)
-    println(io, "CellMap ", cm.p[1], " <-> ", cm.p[2], ":")
-    println(io, "  ndims: ", cm.ndims)
-    println(io, "  L: ", cm.L)
-    println(io, "  $(cm.p[1])-cells: ", length(cm.p1p2))
-    print(io,   "  $(cm.p[2])-cells: ", length(cm.p2p1))
+    indent = get(io, :indent, 0)
+    print(xs...) = Base.print(io, " "^indent, xs...)
+    println(xs...) = Base.println(io, " "^indent, xs...)
+    Base.println(io, "CellMap ", cm.p[1], " <-> ", cm.p[2], ":")
+    println("  ndims: ", cm.ndims)
+    println("  L: ", cm.L)
+    println("  $(cm.p[1])-cells: ", length(cm.p1p2))
+    print("  $(cm.p[2])-cells: ", length(cm.p2p1))
 end
 
 function Base.:(==)(lhs::CellMap, rhs::CellMap)
@@ -20,6 +23,27 @@ function Base.:(==)(lhs::CellMap, rhs::CellMap)
     return lhs.p1p2 == rhs.p1p2 && lhs.p2p1 == rhs.p2p1
 end
 
+"""
+    CellMap(ndims, L, (p1, p2))
+
+Return a `CellMap` object that maps between `p1`-cells and `p2`-cells.
+See also [`cell_map`](@ref).
+
+### Arguments
+
+- `ndims`: number of dimensions
+- `L`: size of each dimension
+- `p1`: dimension of the `p1`-cells
+- `p2`: dimension of the `p2`-cells
+
+### Fields
+
+- `ndims`: number of dimensions
+- `L`: size of each dimension
+- `p`: tuple of the dimensions of the `p1`- and `p2`-cells
+- `p1p2`: dictionary mapping `p1`-cell indices to sets of `p2`-cell indices
+- `p2p1`: dictionary mapping `p2`-cell indices to sets of `p1`-cell indices
+"""
 function CellMap(
         ndims::Int, L::Int, (p1, p2)::Tuple{Int, Int},
     )
@@ -58,10 +82,24 @@ end
 nspins(cm::CellMap) = length(cm.p1p2)
 face_cube_map(n::Int, L::Int) = cell_map(n, L, (2, 3))
 
+"""
+    cell_map(shape::ShapeInfo, (p1, p2))
+
+Return a `CellMap` object that maps between `p1`-cells and `p2`-cells.
+Serialize the result to a file in the cache directory if it does not
+already exist. See also [`CellMap`](@ref).
+
+### Arguments
+
+- `shape`: a `ShapeInfo` object
+- `p1`: dimension of the `p1`-cells
+- `p2`: dimension of the `p2`-cells
+"""
 function cell_map(shape::ShapeInfo, p::Tuple{Int, Int})
-    cache = shape_name(shape, "cm") * "-$(p[1])-$(p[2]).jls"
+    name = shape_name(shape) * "-$(p[1])-$(p[2])"
+    cache = shape_dir(shape, name * ".jls")
     isfile(cache) && return deserialize(cache)
-    with_shape_log(shape, "cm-$(p[1])-$(p[2])") do
+    with_shape_log(shape, name) do
         cm = CellMap(shape.ndims, shape.size, p)
         @debug "serializing cm to $cache"
         serialize(cache, cm)

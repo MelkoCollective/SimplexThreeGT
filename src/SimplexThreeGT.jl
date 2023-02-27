@@ -5,8 +5,8 @@ module SimplexThreeGT
 # using Combinatorics
 # using Configurations
 # using ProgressLogging
-# using TerminalLoggers: TerminalLogger
-# using Logging: with_logger
+using TerminalLoggers: TerminalLogger
+using Logging: with_logger
 # using Serialization
 # using Statistics
 # using GarishPrint

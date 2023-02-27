@@ -1,5 +1,4 @@
 using Test
-using SimplexThreeGT
 
 @testset "checkpoint" begin
     include("checkpoint.jl")
@@ -10,5 +9,5 @@ end
 end
 
 @testset "mc" begin
-    include("mc.jl")
+    include("mc/mc.jl")
 end

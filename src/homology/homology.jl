@@ -1,7 +1,7 @@
 module Homology
 
 using ProgressLogging: @withprogress, @logprogress
-using ..Spec: ShapeInfo, shape_name
+using ..Spec: ShapeInfo, shape_name, shape_dir
 using Serialization: deserialize, serialize
 using Combinatorics: combinations
 using ..SimplexThreeGT: with_path_log

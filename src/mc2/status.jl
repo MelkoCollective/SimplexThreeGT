@@ -10,7 +10,7 @@ E = -\\prod_{face \\in \\text{cube}} \\sigma_{face}
 function cubic_energy end
 
 function cubic_energy(cube_spin_ids, spins::Vector{Int})
-    return -prod(attach_spins) do j
+    return -prod(cube_spin_ids) do j
         @inbounds spins[j]
     end
 end
@@ -70,10 +70,10 @@ E = -\\prod_{f \\in \\text{cube(face)}} \\sigma_{f} - \\lambda \\sigma_{face}
 
 where `cube` is the cube attached to provided `face`.
 """
-@inline function local_energy(mc::MarkovChain, face::Int, effected_cubes = mcmc.cm.p1p2[face])
+@inline function local_energy(mc::MarkovChain, face::Int, effected_cubes = mc.cm.p1p2[face])
     E = sum(effected_cubes) do cube_idx
-        cube_spins = mcmc.cm.p2p1[cube_idx]
-        cubic_energy(cube_spins, mcmc.state.spins)
+        cube_spins = mc.cm.p2p1[cube_idx]
+        cubic_energy(cube_spins, mc.state.spins)
     end
-    return E - mcmc.state.field * mcmc.state.spins[face]
+    return E - mc.state.field * mc.state.spins[face]
 end

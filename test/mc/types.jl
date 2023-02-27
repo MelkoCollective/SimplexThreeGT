@@ -1,0 +1,30 @@
+using Test
+using SimplexThreeGT.Spec
+using SimplexThreeGT.Spec: shape_dir
+using SimplexThreeGT.MonteCarlo: MarkovChain
+
+@testset "MarkovChain(task)" begin
+    task = TaskInfo(;
+        shape=ShapeInfo(
+            ndims=3,
+            size=3,
+        ),
+        sample=SamplingInfo(
+            nburns=100,
+            nsamples=1000,
+            nthrows=1000,
+            gauge=true,
+            observables=["E", "E^2"],
+        ),
+        temperature=Schedule(
+            start=1.0,
+            stop=0.1,
+            step=0.1,
+        ),
+    )
+
+    mc = MarkovChain(task)
+    @test isfile(shape_dir(task.shape, "cm-3d-3L-1-2.jls"))
+    @test isfile(shape_dir(task.shape, "cm-3d-3L-2-3.jls"))
+    show(devnull, MIME"text/plain"(), mc)
+end # testset

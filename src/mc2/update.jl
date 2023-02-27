@@ -16,10 +16,10 @@ Base.@propagate_inbounds function gauge_flip!(spins, cm::CellMap, edge_idx::Int)
 end
 
 function energy_diff!(mc::MarkovChain, face::Int)
-    effected_cubes = mcmc.cm.p1p2[face]
+    effected_cubes = mc.cm.p1p2[face]
     E_old = local_energy(mc, face, effected_cubes)
-    @inbounds flip_spin!(mcmc.state.spins, face)
-    E_old = local_energy(mc, face, effected_cubes)
+    @inbounds flip_spin!(mc.state.spins, face)
+    E_new = local_energy(mc, face, effected_cubes)
     return E_new - E_old
 end
 

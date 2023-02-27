@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "26968c58daf2650e7a4c4e5d75af08a9b237bb6f"
+project_hash = "4a9ba08a56cc760244c657b09646a876b598822c"
 
 [[deps.AbstractTrees]]
 git-tree-sha1 = "faa260e4cb5aba097a73fab382dd4b5819d8ec8c"
@@ -333,6 +333,12 @@ deps = ["Parsers"]
 git-tree-sha1 = "9cc2baf75c6d09f9da536ddf58eb2f29dedaf461"
 uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
 version = "1.4.0"
+
+[[deps.InlineTest]]
+deps = ["Test"]
+git-tree-sha1 = "daf0743879904f0ad645ca6594e1479685f158a2"
+uuid = "bd334432-b1e7-49c7-a2dc-dd9149e4ebd6"
+version = "0.2.0"
 
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
@@ -754,6 +760,12 @@ deps = ["Requires"]
 git-tree-sha1 = "dc84268fe0e3335a62e315a3a7cf2afa7178a734"
 uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
 version = "0.4.3"
+
+[[deps.ReTest]]
+deps = ["Distributed", "InlineTest", "Printf", "Random", "Sockets", "Test"]
+git-tree-sha1 = "dd8f6587c0abac44bcec2e42f0aeddb73550c0ec"
+uuid = "e0db7c4e-2690-44b9-bad6-7687da720f89"
+version = "0.3.2"
 
 [[deps.RecipesBase]]
 deps = ["SnoopPrecompile"]

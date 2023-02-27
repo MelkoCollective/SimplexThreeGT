@@ -1,8 +1,10 @@
 module MonteCarlo
 
+using DocStringExtensions
+using GarishPrint: pprint_struct
 using Random: AbstractRNG, Xoshiro
 using Configurations: Maybe
-using UUIDs: UUID
+using UUIDs: UUID, uuid1
 using ProgressLogging: @progress
 using ..Homology: CellMap, nspins, cell_map
 using ..Spec: TaskInfo, ShapeInfo, SamplingInfo, Schedule, temperatures, fields, task_dir

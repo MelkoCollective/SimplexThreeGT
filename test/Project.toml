@@ -1,2 +1,5 @@
 [deps]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
