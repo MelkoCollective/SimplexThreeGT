@@ -20,6 +20,7 @@ include("options.jl")
 include("homology/homology.jl")
 include("checkpoint.jl")
 include("mc2/mc.jl")
+include("exact.jl")
 # include("log.jl")
 # include("mc/mc.jl")
 

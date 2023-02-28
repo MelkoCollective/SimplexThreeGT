@@ -13,3 +13,7 @@ end
 @testset "update" begin
     include("update.jl")
 end
+
+@testset "sample" begin
+    include("sample.jl")
+end

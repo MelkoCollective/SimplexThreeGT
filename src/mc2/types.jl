@@ -91,15 +91,15 @@ function MarkovChain(
         task::TaskInfo;
         rng::AbstractRNG = Xoshiro(task.seed),
         uuid::UUID = isnothing(task.uuid) ? uuid1() : task.uuid,
-        cm::CellMap = cell_map(task.shape, (2, 3)),
-        gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (1, 2)) : nothing,
+        cm::CellMap = cell_map(task.shape, (task.shape.ndims-1, task.shape.ndims)),
+        gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (task.shape.ndims-2, task.shape.ndims-1)) : nothing,
         spins::BitVector = rand_spins(rng, nspins(cm)),
     )
 
     field = if isnothing(task.extern_field)
         0.0
     else
-        task.extern_field.first
+        task.extern_field.start
     end
 
     state = State(;

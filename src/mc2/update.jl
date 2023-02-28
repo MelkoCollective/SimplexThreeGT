@@ -46,10 +46,10 @@ function gauge_step!(mc::MarkovChain)
         energy_diff!(mc, spin_idx) #flips spin
     end
 
-    if metropolis_accept!(mcmc, delta_E)
-        mcmc.state.energy += delta_E
+    if metropolis_accept!(mc, delta_E)
+        mc.state.energy += delta_E
     else
-        @inbounds gauge_flip!(mcmc.state.spins, mcmc.cm, edge_idx) #flip the spin back
+        @inbounds gauge_flip!(mc.state.spins, mc.cm, edge_idx) #flip the spin back
     end
-    return mcmc
+    return mc
 end

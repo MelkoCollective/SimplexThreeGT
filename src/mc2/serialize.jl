@@ -46,6 +46,7 @@ end
 function read_checkpoint(task::TaskInfo, seed=task.seed)
     isnothing(task.uuid) && error("expect a task uuid of preivous run")
 
+    cm = cell_map(task.shape, (task.shape.ndims-1, task.shape.ndims))
     checkpoints = let checkpoints_dir = task_dir(task, "checkpoints")
         ispath(checkpoints_dir) || error("no checkpoint file found")
         checkpoint_file = task_dir(task, "checkpoints", "$(task.uuid).checkpoint")
@@ -59,15 +60,17 @@ function read_checkpoint(task::TaskInfo, seed=task.seed)
     rng = Xoshiro(seed)
     mcmcs = Dict{Float64,MarkovChain}()
     for (temp, spins) in checkpoints
-        mcmcs[temp] = MarkovChain(task;
+        mc = MarkovChain(task;
             rng=Xoshiro(rand(rng, UInt)),
+            cm,
             # uuid should be different for each MarkovChain
             # so there is no race condition when running
             # multiple MarkovChain in parallel
             uuid=uuid1(),
             spins,
-            temp,
         )
+        mc.state.temp = temp
+        mcmcs[temp] = mc
     end
     return mcmcs
 end

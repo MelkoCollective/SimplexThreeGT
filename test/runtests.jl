@@ -11,3 +11,7 @@ end
 @testset "mc" begin
     include("mc/mc.jl")
 end
+
+@testset "misc" begin
+    include("log.jl")
+end

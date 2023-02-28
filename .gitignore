@@ -16,3 +16,4 @@ tasks
 !/logs/README.md
 coverage
 /test/logs
+Manifest.toml

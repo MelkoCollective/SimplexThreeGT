@@ -3,11 +3,11 @@ module MonteCarlo
 using DocStringExtensions
 using GarishPrint: pprint_struct
 using Random: AbstractRNG, Xoshiro
-using Configurations: Maybe
+using Configurations: Maybe, to_toml
 using UUIDs: UUID, uuid1
 using ProgressLogging: @progress
 using ..Homology: CellMap, nspins, cell_map
-using ..Spec: TaskInfo, ShapeInfo, SamplingInfo, Schedule, temperatures, fields, task_dir
+using ..Spec: TaskInfo, ShapeInfo, SamplingInfo, Schedule, temperatures, fields, task_dir, guarantee_dir
 using ..Checkpoint: Checkpoint, find_checkpoint, write_checkpoint
 using ..SimplexThreeGT: with_path_log
 
@@ -21,5 +21,6 @@ include("status.jl")
 include("update.jl")
 include("serialize.jl")
 include("sample.jl")
+include("obs.jl")
 
 end # module MonteCarlo
