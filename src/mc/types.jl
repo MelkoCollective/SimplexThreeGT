@@ -1,48 +1,149 @@
-mutable struct MCMCState
+"""
+    $(TYPEDEF)
+
+An observable.
+
+### Fields
+
+- `value::Float64`: The current value of the observable.
+- `final::Bool`: Whether the observable is final.
+
+### Type Parameters
+
+- `Tag`: The name of the observable.
+"""
+mutable struct Observable{Tag}
+    value::Float64
+    final::Bool
+end
+
+Observable(name::String) = Observable(Symbol(name))
+
+"""
+    Observable(name::Symbol) -> Observable{name}
+
+Create a new observable with the given name.
+"""
+Observable(name::Symbol) = Observable{name}(0.0, false)
+
+"""
+    observable_name(::Observable{Tag}) where Tag -> Symbol
+
+Get the name of an observable.
+"""
+observable_name(::Observable{Tag}) where Tag = Tag
+
+Base.@kwdef mutable struct State
     spins::BitVector
     temp::Float64
     energy::Float64
+    field::Float64
 end
 
-mutable struct SimplexMCMC{RNG, Observables <: Tuple}
+"""
+    $(TYPEDEF)
+
+A Markov chain.
+
+### Fields
+
+- `rng::AbstractRNG`: The random number generator to use.
+- `uuid::UUID`: The UUID of the Markov chain.
+- `cm::CellMap`: The cell map to use.
+- `gauge::Maybe{CellMap}`: The gauge to use.
+- `state::State`: The current state of the Markov chain.
+- `obs::Observables`: The observables to track.
+"""
+Base.@kwdef struct MarkovChain{
+        RNG <: AbstractRNG,
+        Observables <: Tuple
+    }
+
     rng::RNG
     uuid::UUID
     cm::CellMap
     gauge::Maybe{CellMap}
-    state::MCMCState
+    state::State
     obs::Observables
 end
 
+"""
+    observable_names(mc::MarkovChain) -> NTuple{N, Symbol}
 
-function SimplexMCMC(;
-        cm::CellMap,
-        guage::Maybe{CellMap} = nothing,
-        uuid::UUID = uuid1(),
-        task::TaskInfo,
-        temp::Real = task.temperature.start,
-        seed::Integer = task.seed,
-        rng::AbstractRNG = Xoshiro(seed),
-        spins = rand_spins(rng, nspins(cm)),
+Get the names of the observables in a Markov chain.
+"""
+observable_names(mc::MarkovChain) = map(observable_name, mc.obs)
+
+"""
+    $(SIGNATURES)
+
+Create a new Markov chain from a task.
+
+### Arguments
+
+- `task::TaskInfo`: The task to create the Markov chain from.
+
+### Keyword Arguments
+
+- `rng::AbstractRNG = Xoshiro(task.seed)`: The random number generator to use.
+- `uuid::UUID = isnothing(task.uuid) ? uuid1() : task.uuid`: The UUID of the Markov chain.
+- `cm::CellMap = cell_map(task.shape, (2, 3))`: The cell map to use.
+- `gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (1, 2)) : nothing`: The gauge cell map to use.
+- `spins::BitVector = rand_spins(rng, nspins(cm))`: The initial spins to use.
+"""
+function MarkovChain(
+        task::TaskInfo;
+        rng::AbstractRNG = Xoshiro(task.seed),
+        uuid::UUID = isnothing(task.uuid) ? uuid1() : task.uuid,
+        cm::CellMap = cell_map(task.shape, (task.shape.ndims-1, task.shape.ndims)),
+        gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (task.shape.ndims-2, task.shape.ndims-1)) : nothing,
+        spins::BitVector = rand_spins(rng, nspins(cm)),
+        field = first(fields(task)),
+        temp = task.temperature.start,
+        obs = ntuple(length(task.sample.observables)) do i
+            Observable(task.sample.observables[i])
+        end,
     )
 
-    state = MCMCState(spins, temp, energy(cm, spins))
-    obs = ntuple(length(task.sample.observables)) do i
-        Observable(task.sample.observables[i])
+    state = State(;
+        spins,
+        field,
+        temp,
+        energy = energy(cm, spins, field),
+    )
+
+    return MarkovChain(
+        rng,
+        uuid,
+        cm,
+        gauge,
+        state,
+        obs,
+    )
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", mc::MarkovChain)
+    println(io, "MarkovChain{", typeof(mc.rng), "}:")
+    println(io, "  uuid   = \"", mc.uuid, "\"")
+
+    print(io, "  obs    = ")
+    join(io, observable_names(mc), ", ")
+    println(io)
+
+    print(io, "  ")
+    show(IOContext(io, :indent=>2), mime, mc.cm)
+
+    if !isnothing(mc.gauge)
+        println(io)
+        print(io, "  Gauge:")
+        println(io)
+        print(io, " "^4)
+        show(IOContext(io, :indent=>4), mime, mc.gauge)
     end
-    return SimplexMCMC(rng, uuid, cm, guage, state, obs)
-end
 
-function SimplexMCMC(task::TaskInfo)
-    cm = cell_map(task.shape, (2, 3)) # face <-> cube
-    gauge = task.sample.gauge ? cell_map(task.shape, (1, 2)) : nothing
-    return SimplexMCMC(;cm, gauge, task)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", mcmc::SimplexMCMC)
-    println(io, "SimplexMCMC:")
-    println(io, "  UUID: $(mcmc.uuid)")
+    println(io)
     println(io, "  State:")
-    println(io, "    temperature: $(mcmc.state.temp)")
-    println(io, "    energy: $(mcmc.state.energy)")
-    show(IOContext(io, :indent=>2), MIME"text/plain"(), mcmc.cm)
+    println(io, "    temp   = ", mc.state.temp)
+    println(io, "    field  = ", mc.state.field)
+    print(io, "    energy = ", mc.state.energy)
 end

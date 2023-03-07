@@ -1,7 +1,7 @@
 using Test
 using SimplexThreeGT
 using Combinatorics
-using SimplexThreeGT: cell_topology, insert_dims
+using SimplexThreeGT.Homology: cell_topology, insert_dims
 
 @testset "insert_dims(_, ::Dims{2}, _)" begin
     for dims in combinations(1:5, 2)

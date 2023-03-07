@@ -1,5 +1,5 @@
 using Test
-using SimplexThreeGT: CellMap, cell_points, cell_topology, Point
+using SimplexThreeGT.Homology: CellMap, cell_points, cell_topology, Point
 
 
 @test CellMap(2, 3, (1, 2)) == CellMap(

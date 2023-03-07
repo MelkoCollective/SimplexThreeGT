@@ -1,43 +1,59 @@
-mutable struct Observable{Tag}
-    value::Float64
+function init!(obs::Observable)
+    obs.value = 0.0
+    obs.final = false
+    return obs
 end
 
-Observable(name::String) = Observable(Symbol(name))
-Observable(name::Symbol) = Observable{name}(0.0)
-obs_name(::Observable{Tag}) where Tag = Tag
-init!(obs::Observable) = (obs.value = 0.0; return obs)
-collect!(::Observable{T}, ::SimplexMCMC) where T = error("Observable $(T) not implemented")
+function safe_collect!(ob::Observable{Name}, mc::MarkovChain) where {Name}
+    ob.final && error("Observable $Name already finalized")
+    return collect!(ob, mc)
+end
 
-obs_names(mcmc::SimplexMCMC) = map(obs_name, mcmc.obs)
+collect!(::Observable{T}, ::MarkovChain) where T = error("Observable $(T) not implemented")
 
-function init!(mcmc::SimplexMCMC)
-    for obs in mcmc.obs
+function finalize!(ob::Observable, ::MarkovChain, nsamples::Int)
+    ob.value /= nsamples
+    ob.final = true
+    return ob
+end
+
+function init!(mc::MarkovChain)
+    for obs in mc.obs
         init!(obs)
     end
-    return mcmc
+    return mc
 end
 
-function collect!(mcmc::SimplexMCMC)
-    for obs in mcmc.obs
-        collect!(obs, mcmc)
+function collect!(mc::MarkovChain)
+    for obs in mc.obs
+        safe_collect!(obs, mc)
     end
-    return mcmc
+    return mc
 end
 
-function finalize!(mcmc::SimplexMCMC, nsamples::Int)
-    for obs in mcmc.obs
-        obs.value /= nsamples
+function finalize!(mc::MarkovChain, nsamples::Int)
+    for obs in mc.obs
+        finalize!(obs, mc, nsamples)
     end
-    return mcmc
+    return mc
 end
 
-function collect!(ob::Observable{:E}, mcmc::SimplexMCMC)
-    ob.value += mcmc.state.energy
+function collect!(ob::Observable{:E}, mc::MarkovChain)
+    ob.value += mc.state.energy
     return ob
 end
 
-function collect!(ob::Observable{Symbol("E^2")}, mcmc::SimplexMCMC)
-    ob.value += mcmc.state.energy^2
+function collect!(ob::Observable{Symbol("E^2")}, mc::MarkovChain)
+    ob.value += mc.state.energy^2
     return ob
 end
 
+function collect!(ob::Observable{:M}, mc::MarkovChain)
+    ob.value += sum_spins(mc.state.spins)
+    return ob
+end
+
+function collect!(ob::Observable{Symbol("M^2")}, mc::MarkovChain)
+    ob.value += sum_spins(mc.state.spins)^2
+    return ob
+end

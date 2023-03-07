@@ -1,4 +1,7 @@
 # SimplexThreeGT
+
+[![codecov](https://codecov.io/gh/MelkoCollective/SimplexThreeGT/branch/main/graph/badge.svg?token=TQN1C1BLLR)](https://codecov.io/gh/MelkoCollective/SimplexThreeGT)
+
 Simplex Three Gauge Theory Monte Carlo
 
 This repository contains code for the simulation of the 3-cell classical Z2 gauge theories. The Hamiltonians are constructed on $d$-dimensional hypercubic lattices out of Ising variables interacting on hypercubic "cells" or "simplices".  Specifically

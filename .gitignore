@@ -14,3 +14,6 @@ data
 old_data
 tasks
 !/logs/README.md
+coverage
+/test/logs
+Manifest.toml
