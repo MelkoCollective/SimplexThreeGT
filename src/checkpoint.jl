@@ -22,20 +22,6 @@ end # struct
 """
     $(SIGNATURES)
 
-A row in a checkpoint file.
-"""
-Row(temp::Float64, spins::BitVector) = Row(temp, 0.0, spins)
-
-"""
-    $(SIGNATURES)
-
-Write a row to a file where field is a `nothing`.
-"""
-Row(::Nothing, temp::Float64, spins::BitVector) = Row(temp, spins)
-
-"""
-    $(SIGNATURES)
-
 Write a row to a file.
 """
 function Base.write(io::IO, row::Row)

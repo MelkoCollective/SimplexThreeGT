@@ -27,6 +27,4 @@ function energy(cm::CellMap, T::Real, field::Real = 0.0)
     end
 end
 
-energy(cm::CellMap, T::Real, ::Nothing) = energy(cm, T)
-
 end # module
