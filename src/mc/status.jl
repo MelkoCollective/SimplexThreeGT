@@ -32,15 +32,6 @@ Return the energy of the current state of the Markov chain.
 E = -\\sum_{cube} \\prod_{face \\in \\text{cube}} \\sigma_{face} - \\lambda \\sum_{face} \\sigma_{face}
 ```
 """
-function energy(mc::MarkovChain)
-    return energy(mc.cm, mc.state.spins, mc.state.field)
-end
-
-"""
-    $(SIGNATURES)
-
-Return the energy of the system. The field is the external magnetic field.
-"""
 function energy(cm::CellMap, spins, field::Real)
     energy(cm, spins) - field * sum_spins(spins)
 end
@@ -72,10 +63,6 @@ E = -\\prod_{f \\in \\text{cube(face)}} \\sigma_{f}
 
 where `cube` is the cube attached to provided `face`.
 """
-@inline function local_energy(mc::MarkovChain, effected_cubes)
-    local_energy(mc.cm, mc.state.spins, effected_cubes)
-end
-
 @inline function local_energy(cm::CellMap, spins, effected_cubes)
     return sum(effected_cubes) do cube_idx
         cube_spins = cm.p2p1[cube_idx]
