@@ -8,6 +8,9 @@ using SimplexThreeGT.Homology: CellMap, nspins
 using SimplexThreeGT.MonteCarlo: MonteCarlo, MarkovChain, burn!, sample!, annealing!, resample, energy
 using SimplexThreeGT.Exact
 using SimplexThreeGT.Checkpoint
+using Random
+
+Random.seed!(1234)
 
 @testset "sample" begin
     task = TaskInfo(;

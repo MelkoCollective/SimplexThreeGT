@@ -91,10 +91,6 @@ function shape_dir(shape::ShapeInfo, xs...)
     return data_dir(shape.storage, "shape", xs...)
 end
 
-function shape_file(shape::ShapeInfo)
-    shape_dir(shape, shape_name(shape) * ".jls")
-end
-
 export SamplingInfo
 
 """
