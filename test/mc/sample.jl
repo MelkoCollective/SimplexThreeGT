@@ -5,8 +5,9 @@ using SimplexThreeGT: SimplexThreeGT
 using SimplexThreeGT.Spec
 using SimplexThreeGT.Spec: temperatures, fields
 using SimplexThreeGT.Homology: CellMap, nspins
-using SimplexThreeGT.MonteCarlo: MarkovChain, burn!, sample!, annealing!, resample, energy
+using SimplexThreeGT.MonteCarlo: MonteCarlo, MarkovChain, burn!, sample!, annealing!, resample, energy
 using SimplexThreeGT.Exact
+using SimplexThreeGT.Checkpoint
 
 @testset "sample" begin
     task = TaskInfo(;
@@ -106,7 +107,7 @@ using SimplexThreeGT.Exact
     E = Exact.energy(mc.cm, mc.state.temp, mc.state.field)
     burn!(mc, task)
     sample!(mc, task)
-    @test_broken mc.obs[1].value ≈ E rtol=1e-2
+    @test mc.obs[1].value ≈ E rtol=1e-2
 end # testset
 
 @testset "annealing" begin

@@ -1,6 +1,50 @@
 module Checkpoint
 
-export read_checkpoint, write_checkpoint, find_checkpoint
+using DocStringExtensions
+
+"""
+    $(TYPEDEF)
+
+A checkpoint for a simulation.
+
+### Fields
+
+- `field::Float64`: The field value.
+- `temp::Float64`: The temperature.
+- `spins::BitVector`: The spins.
+"""
+Base.@kwdef struct Row
+    field::Float64
+    temp::Float64
+    spins::BitVector
+end # struct
+
+"""
+    $(SIGNATURES)
+
+A row in a checkpoint file.
+"""
+Row(temp::Float64, spins::BitVector) = Row(temp, 0.0, spins)
+
+"""
+    $(SIGNATURES)
+
+Write a row to a file where field is a `nothing`.
+"""
+Row(::Nothing, temp::Float64, spins::BitVector) = Row(temp, spins)
+
+"""
+    $(SIGNATURES)
+
+Write a row to a file.
+"""
+function Base.write(io::IO, row::Row)
+    write(io, row.field)
+    write(io, row.temp)
+    write(io, length(row.spins))
+    write(io, row.spins.chunks)
+    return
+end
 
 function spin_nbytes(nspins::Int)
     d,r = divrem(nspins, 64)
@@ -20,48 +64,65 @@ function to_bitvector(x::Vector{UInt8}, nspins::Int)
     return bv
 end
 
-function write_checkpoint(io::IO, temp::Float64, spins::BitVector, field::Float64 = 0.0)
-    write(io, temp)
-    write(io, field)
-    write(io, spins.chunks)
-    return
-end
+"""
+    $(SIGNATURES)
 
-function read_spins(io::IO, nspins::Int)
+Read a row from a file.
+"""
+function Base.read(io::IO, ::Type{Row})
+    field = read(io, Float64)
+    temp  = read(io, Float64)
+    nspins = read(io, Int)
     nbytes = spin_nbytes(nspins)
-    return to_bitvector(read(io, nbytes), nspins)
+    spins = to_bitvector(read(io, nbytes), nspins)
+    return Row(field, temp, spins)
 end
 
-function read_checkpoint(io::IO, nspins::Int)
-    return read(io, Float64), read(io, Float64), read_spins(io, nspins)
+"""
+    $(SIGNATURES)
+
+Read all rows from a file.
+"""
+function read_all_records(filename)
+    open(filename, "r") do io
+        return read_all_records(io)
+    end
 end
 
-function find_checkpoint(io::IO, T::Float64, nspins::Int, field::Float64 = 0.0)
-    d = find_checkpoint(io, [T], nspins, field)
-    return (first(d)..., )
+function read_all_records(io::IO)
+    results = Row[]
+    while !eof(io)
+        push!(results, read(io, Row))
+    end
+    return results
 end
 
-function find_checkpoint(io::IO, temps, nspins::Int, field::Float64 = 0.0)
-    nbytes = (nspins ÷ 64 + 1) * 8
-    d = Dict{Float64, BitVector}()
-    sizehint!(d, length(temps))
-    temps = Set(temps)
+"""
+    $(SIGNATURES)
+
+Find rows in a file.
+"""
+function find(io::IO; temps=Set(), fields=Set([0.0]))
+    results = Row[]
 
     while !eof(io)
-        temp = read(io, Float64)
-        if field == read(io, Float64)
-            if temp in temps
-                delete!(temps, temp)
-                d[temp] = read_spins(io, nspins)
-            else
-                skip(io, nbytes)
-            end
-            isempty(temps) && return d
+        row = read(io, Row)
+        if row.field in fields && row.temp in temps
+            push!(results, row)
         end
     end
-    eof(io) && throw(ArgumentError("no checkpoint found or EOF reached"))
-    # not all temperatures found
-    throw(ArgumentError("missing temperatures: $(temps)"))
+    return results
+end
+
+"""
+    $(SIGNATURES)
+
+Find rows in a file.
+"""
+function find(filename::String; temps=Set(), fields=Set([0.0]))
+    open(filename, "r") do io
+        return find(io, temps=temps, fields=fields)
+    end
 end
 
 end # module

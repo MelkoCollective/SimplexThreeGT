@@ -54,7 +54,11 @@ A Markov chain.
 - `state::State`: The current state of the Markov chain.
 - `obs::Observables`: The observables to track.
 """
-Base.@kwdef struct MarkovChain{RNG <: AbstractRNG, Observables <: Tuple}
+Base.@kwdef struct MarkovChain{
+        RNG <: AbstractRNG,
+        Observables <: Tuple
+    }
+
     rng::RNG
     uuid::UUID
     cm::CellMap
@@ -94,24 +98,19 @@ function MarkovChain(
         cm::CellMap = cell_map(task.shape, (task.shape.ndims-1, task.shape.ndims)),
         gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (task.shape.ndims-2, task.shape.ndims-1)) : nothing,
         spins::BitVector = rand_spins(rng, nspins(cm)),
+        field = first(fields(task)),
+        temp = task.temperature.start,
+        obs = ntuple(length(task.sample.observables)) do i
+            Observable(task.sample.observables[i])
+        end,
     )
-
-    field = if isnothing(task.extern_field)
-        0.0
-    else
-        task.extern_field.start
-    end
 
     state = State(;
         spins,
         field,
-        temp = task.temperature.start,
+        temp,
         energy = energy(cm, spins, field),
     )
-
-    obs = ntuple(length(task.sample.observables)) do i
-        Observable(task.sample.observables[i])
-    end
 
     return MarkovChain(
         rng,

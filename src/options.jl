@@ -166,7 +166,7 @@ function guarantee_dir(path::String)
 end
 
 temperatures(task::TaskInfo) = temperatures(task.temperature)
-fields(task::TaskInfo) = isnothing(task.extern_field) ? 0.0 : fields(task.extern_field)
+fields(task::TaskInfo) = isnothing(task.extern_field) ? [0.0] : fields(task.extern_field)
 
 function Configurations.to_dict(::Type{TaskInfo}, x::UUID)
     return string(x)

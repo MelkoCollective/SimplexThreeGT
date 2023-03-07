@@ -48,22 +48,27 @@ function annealing!(mcmc::MarkovChain, task::TaskInfo)
             # NOTE: make sure the data is written to different
             # files under same directory for different runs
             record(data_file) do record_agent
-                @progress name="extern field" for h in fields(task)
-                    mcmc.state.field = h
+                foreach_field!(mcmc, fields(task)) do
                     @progress name="annealing" for T in temperatures(task)
                         mcmc.state.temp = T
                         @debug "Temperature: $T (h=$h)"
                         burn!(mcmc, task)
                         sample!(mcmc, task)
-
                         record_agent(mcmc)
                         checkpoint_agent()
-                    end
+                    end 
                 end
             end
         end
     end # with_task_log
     return mcmc
+end
+
+function foreach_field!(f, mc::MarkovChain, fields)
+    @progress name="extern field" for h in fields
+        mc.state.field = h
+        f()
+    end
 end
 
 function resample(task::TaskInfo)
@@ -77,24 +82,24 @@ function resample(task::TaskInfo)
     uuid = uuid1()
     save_task_image(task, uuid, "resample")
 
-    mcmc_points = read_checkpoint(task, seed)
     # NOTE: no need to checkpoint here, since we are already
     # at the equilibrium state.
     guarantee_dir(task_dir(task, "resample", "$(task.uuid)"))
     data_file = task_dir(task, "resample", "$(task.uuid)", "$(uuid).csv")
 
+    mcmc_tasks = read_checkpoint(task, seed)
+
     with_task_log(task, "resample-$uuid") do
-        @info "Resampling $(length(mcmc_points)) chains" nrepeat seed
+        @info "Resampling $(length(mcmc_tasks)) chains" nrepeat seed
         record(data_file) do record_agent
-            @progress name="resample" for _ in 1:nrepeat
-                for temp in temperatures(task)
-                    @debug "Temperature: $(temp)"
-                    mcmc = mcmc_points[temp]
+            @progress name="nrepeat" for round_idx in 1:nrepeat
+                @progress name="chains" for mcmc in mcmc_tasks
+                    # @show mcmc.state.temp
                     sample!(mcmc, task)
                     record_agent(mcmc)
                 end
             end
-        end
+        end # record
     end # with_task_log
     return
 end

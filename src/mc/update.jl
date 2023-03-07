@@ -15,13 +15,7 @@ Base.@propagate_inbounds function gauge_flip!(spins, cm::CellMap, edge_idx::Int)
     return spins
 end
 
-function energy_diff!(mc::MarkovChain, face::Int)
-    effected_cubes = mc.cm.p1p2[face]
-    E_old = local_energy(mc, face, effected_cubes)
-    @inbounds flip_spin!(mc.state.spins, face)
-    E_new = local_energy(mc, face, effected_cubes)
-    return E_new - E_old
-end
+energy_diff!(mc::MarkovChain, face::Int) = energy_diff!(mc.state.spins, mc.cm, face, mc.state.field)
 
 function metropolis_accept!(mc::MarkovChain, delta_E)
     delta_E ≤ 0 && return true
