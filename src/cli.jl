@@ -4,8 +4,9 @@ using Comonicon
 using TOML: TOML
 using Configurations: from_toml, to_dict, from_dict
 using ..SimplexThreeGT: SimplexThreeGT
+using ..Homology: cell_map
 using ..MonteCarlo: MonteCarlo, MarkovChain
-using ..Spec: TaskInfo, task_dir
+using ..Spec: TaskInfo, ShapeInfo, task_dir
 using ..PostProcess: PostProcess
 
 """
@@ -86,6 +87,19 @@ list tasks
     return
 end
 
+"""
+crunch the data
+
+# Arguments
+
+- `path::String`: path to the directory containing tasks
+
+# Options
+
+- `--ndims <int>`: number of dimensions
+- `--size <int>`: size of the lattice
+- `--uuid <string>`: uuid of the task
+"""
 @cast function crunch(
         path::String = pkgdir(SimplexThreeGT, "data");
         ndims::Int, size::Int, uuid::String,
@@ -96,6 +110,20 @@ end
     info = from_toml(TaskInfo, joinpath(task_images_dir, "$(uuid).toml"); uuid)
     PostProcess.postprocess(info)
     return
+end
+
+"""
+generate the cell map of the shape
+
+# Options
+
+- `--shape <path>`: path to the shape file,
+  or use `--shape.<property>` to change the property
+  temporarily.
+"""
+@cast function csm(;shape::ShapeInfo)
+    cell_map(shape, (shape.ndims-1, shape.ndims))
+    cell_map(shape, (shape.ndims-2, shape.ndims-1))
 end
 
 """

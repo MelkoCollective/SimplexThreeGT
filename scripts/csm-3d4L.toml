@@ -1,0 +1,6 @@
+ndims = 3
+size = 4
+
+[storage]
+data_dir = "data"
+tags = []
