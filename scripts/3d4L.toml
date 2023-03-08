@@ -6,16 +6,15 @@ size = 4
 
 [shape.storage]
 data_dir = "data"
-checkpoint = "checkpoint.txt"
 tags = []
 
 [sample]
 nburns = 10_000
 nsamples = 500
 nthrows = 10
-observables = ["E", "E^2"]
+observables = ["E", "E^2", "M"]
 
 [temperature]
 start = 4.6
-step = -0.01
+step = 0.01
 stop = 0.1

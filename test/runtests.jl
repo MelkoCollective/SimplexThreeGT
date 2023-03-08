@@ -12,6 +12,10 @@ end
     include("mc/mc.jl")
 end
 
+@testset "postprocess" begin
+    include("postprocess/crunch.jl")
+end
+
 @testset "misc" begin
     include("log.jl")
 end

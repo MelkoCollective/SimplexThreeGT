@@ -5,7 +5,7 @@ using SimplexThreeGT: SimplexThreeGT
 using SimplexThreeGT.Spec
 using SimplexThreeGT.Spec: temperatures, fields
 using SimplexThreeGT.Homology: CellMap, nspins
-using SimplexThreeGT.MonteCarlo: MonteCarlo, MarkovChain, burn!, sample!, annealing!, resample, energy
+using SimplexThreeGT.MonteCarlo: MonteCarlo, MarkovChain, burn!, sample!, annealing, resample, energy
 using SimplexThreeGT.Exact
 using SimplexThreeGT.Checkpoint
 using Random
@@ -135,8 +135,7 @@ end # testset
             step=0.1,
         ),
     )
-    mc = MarkovChain(task)
-    annealing!(mc, task)
+    mc = annealing(task)
     Es = [Exact.energy(mc.cm, T, mc.state.field) for T in reverse(0.1:0.1:1.0)]
 
     file = Spec.task_dir(task, "annealing", "$(mc.uuid).csv")
