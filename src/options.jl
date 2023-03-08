@@ -25,7 +25,7 @@ Options for the schedule.
     stop::Float64 = 0.1
 
     function Schedule(start, step, stop)
-        start > stop || throw(ArgumentError("start must be greater than stop"))
+        start ≥ stop || throw(ArgumentError("start must be greater than stop"))
         step > 0 || throw(ArgumentError("step must be positive"))
         return new(start, step, stop)
     end
@@ -145,9 +145,13 @@ Options for a single task.
 end
 
 function task_dir(task::TaskInfo, xs...)
+    return task_dir(task.shape, xs...)
+end
+
+function task_dir(shape::ShapeInfo, xs...)
     path = guarantee_dir(data_dir(
-        task.shape.storage,
-        shape_name(task.shape),
+        shape.storage,
+        shape_name(shape),
     ))
     return joinpath(path, xs...)
 end

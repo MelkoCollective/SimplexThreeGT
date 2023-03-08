@@ -7,6 +7,6 @@ include("checkpoint.jl")
 include("mc/mc.jl")
 include("exact.jl")
 include("postprocess/postprocess.jl")
-include("cli.jl")
+include("cli/cli.jl")
 
 end
