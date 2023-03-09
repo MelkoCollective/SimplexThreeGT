@@ -34,6 +34,7 @@ function annealing_task(d::Int, L::Int, h_start::Float64, h_stop::Float64)
             nburns=50_000,
             nsamples=500_000,
             nthrows=10,
+            gauge=false,
             observables=["E", "E^2"]
         ),
         temperature = Schedule(;
