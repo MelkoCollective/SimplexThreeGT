@@ -29,7 +29,8 @@ end
         slurm_script = CLI.slurm_dir("csm_$(d)d$(L)L.sh")
         script = slurm("csm_$(d)d$(L)L", 2, 16, [
             "julia --project --threads=2 $main_jl csm --task=$task_file"
-        ]
+        ])
+
         open(slurm_script, "w") do io
             println(io, script)
         end
@@ -47,7 +48,7 @@ end
             slurm_script = CLI.slurm_dir("annealing_$(d)d$(L)L_$(h_start)h.sh")
             script = slurm("annealing_$(d)d$(L)L_$(h_start)h", 1, 4, [
                 "julia --project $main_jl annealing --task=$file"
-            ]
+            ])
 
             open(slurm_script, "w") do io
                 println(io, script)
@@ -91,7 +92,7 @@ To run a subset of the schedule, use `resample` command manually.
         @info "binning" ndims=d size=L uuid=uuid
         script = slurm("binning_$(d)d$(L)L_$uuid", 1, 4, [
             "julia --project $main_jl resample --ndims=$d --size=$L --uuid=$uuid --repeat=$each"
-        ]
+        ])
 
         slurm_script = CLI.slurm_dir("binning_$uuid.sh")
         open(slurm_script, "w") do io
