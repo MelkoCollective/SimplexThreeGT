@@ -10,7 +10,7 @@ using SimplexThreeGT.Spec: Spec
 function slurm(name::String, nthreads::Int, mem::Int, cmds::Vector{String})
     """#!/bin/bash
     #SBATCH --account=rrg-rgmelko-ab
-    #SBATCH --time=14-00:00:00
+    #SBATCH --time=7-00:00:00
     #SBATCH --cpus-per-task=$nthreads
     #SBATCH --mem=$(mem)G
     #SBATCH --job-name=$name
