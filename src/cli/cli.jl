@@ -143,13 +143,13 @@ generate the cell map of the shape
 
 # Options
 
-- `--shape <path>`: path to the shape file,
-  or use `--shape.<property>` to change the property
+- `--task <path>`: path to the shape file,
+  or use `--task.<property>` to change the property
   temporarily.
 """
-@cast function csm(;shape::ShapeInfo)
-    cell_map(shape, (shape.ndims-1, shape.ndims))
-    cell_map(shape, (shape.ndims-2, shape.ndims-1))
+@cast function csm(;task::ShapeInfo)
+    cell_map(task, (task.ndims-1, task.ndims))
+    cell_map(task, (task.ndims-2, task.ndims-1))
 end
 
 """
