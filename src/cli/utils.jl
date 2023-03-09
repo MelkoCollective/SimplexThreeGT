@@ -5,8 +5,8 @@ function foreach_shape(f)
 end
 
 function foreach_field(f)
-    for h_start in 1.0:-0.1:0.1
-        h_stop = round(h_start - 0.09; digits=2)
+    for h_start in 1.0:-0.05:0.05
+        h_stop = round(h_start - 0.04; digits=2)
         f(h_start, h_stop)
     end
     f(0.0, 0.0)
