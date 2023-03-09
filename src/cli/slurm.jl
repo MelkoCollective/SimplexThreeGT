@@ -41,6 +41,7 @@ end
 
 @cast function annealing()
     ispath(CLI.slurm_dir()) || mkpath(CLI.slurm_dir())
+    main_jl = CLI.root_dir("main.jl")
 
     foreach_shape() do d, L
         foreach_field() do h_start, h_stop
@@ -78,6 +79,7 @@ To run a subset of the schedule, use `resample` command manually.
         ndims::String, sizes::String,
         total::Int=100, each::Int=10
     )
+    main_jl = CLI.root_dir("main.jl")
     parse_range(s::String) = UnitRange(map(x->parse(Int, x), split(s, ":"))...)
     main_jl = CLI.root_dir("main.jl")
     ndims = parse_range(ndims)
