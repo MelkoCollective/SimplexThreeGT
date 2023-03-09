@@ -88,23 +88,24 @@ To run a subset of the schedule, use `resample` command manually.
 
     for d in ndims, L in sizes
         shape = Spec.ShapeInfo(;ndims=d, size=L)
-        file = first(readdir(Spec.task_dir(shape, "task_images")))
-        uuid = splitext(file)[1]
+        for file in readdir(Spec.task_dir(shape, "task_images"))
+            uuid = splitext(file)[1]
 
-        @info "binning" ndims=d size=L uuid=uuid
-        script = slurm("binning_$(d)d$(L)L_$uuid", 1, 4, [
-            "julia --project $main_jl resample --ndims=$d --size=$L --uuid=$uuid --repeat=$each"
-        ])
+            @info "binning" ndims=d size=L uuid=uuid
+            script = slurm("binning_$(d)d$(L)L_$uuid", 1, 4, [
+                "julia --project $main_jl resample --ndims=$d --size=$L --uuid=$uuid --repeat=$each"
+            ])
 
-        slurm_script = CLI.slurm_dir("binning_$uuid.sh")
-        open(slurm_script, "w") do io
-            println(io, script)
-        end
+            slurm_script = CLI.slurm_dir("binning_$uuid.sh")
+            open(slurm_script, "w") do io
+                println(io, script)
+            end
 
-        for _ in 1:njobs
-            @info "run(`sbatch $slurm_script`)"
-            run(`sbatch $slurm_script`)
-        end
+            for _ in 1:njobs
+                @info "run(`sbatch $slurm_script`)"
+                run(`sbatch $slurm_script`)
+            end
+        end # foreach uuid
     end
 end
 
