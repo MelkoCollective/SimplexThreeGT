@@ -13,6 +13,6 @@ function foreach_field(f)
     return
 end
 
-root_dir(xs...) = pkgdir(SimplexThreeGT, "scripts", xs...)
+root_dir(xs...) = relpath(pkgdir(SimplexThreeGT, "scripts", xs...), pkgdir(SimplexThreeGT))
 task_dir(xs...) = root_dir("tasks", xs...)
 slurm_dir(xs...) = root_dir("slurm", xs...)
