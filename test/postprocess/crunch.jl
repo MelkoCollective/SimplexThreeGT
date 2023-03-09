@@ -15,12 +15,13 @@ using Statistics
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
             storage=StorageInfo(;data_dir)
         ),
         sample=SamplingInfo(
             nburns=1000,
-            nsamples=10000,
-            nthrows=1000,
+            nsamples=1000,
+            nthrows=10,
             gauge=true,
             observables=["E", "E^2"],
         ),

@@ -79,6 +79,7 @@ Options for the shape of the lattice.
 @option struct ShapeInfo
     ndims::Int
     size::Int
+    p::Int = 3
     storage::StorageInfo = StorageInfo()
 end
 

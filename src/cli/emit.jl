@@ -9,16 +9,16 @@ using SimplexThreeGT.CLI: CLI, foreach_shape, foreach_field
 using Configurations
 using SimplexThreeGT.Spec: TaskInfo, ShapeInfo, SamplingInfo, Schedule, guarantee_dir
 
-function csm_task(d::Int, L::Int)
+function csm_task(d::Int, L::Int, p::Int)
     guarantee_dir(CLI.task_dir())
-    task = ShapeInfo(;ndims=d, size=L)
+    task = ShapeInfo(;ndims=d, size=L, p)
     to_toml(CLI.task_dir("csm-$(d)d$(L)L.toml"), task)
     return
 end
 
 @cast function csm()
     foreach_shape() do d, L
-        csm_task(d, L)
+        csm_task(d, L, 3)
     end
     return
 end

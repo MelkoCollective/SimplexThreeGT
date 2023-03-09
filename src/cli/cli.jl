@@ -148,8 +148,8 @@ generate the cell map of the shape
   temporarily.
 """
 @cast function csm(;task::ShapeInfo)
-    cell_map(task, (task.ndims-1, task.ndims))
-    cell_map(task, (task.ndims-2, task.ndims-1))
+    cell_map(task, (task.p-1, task.p))
+    cell_map(task, (task.p-2, task.p-1))
 end
 
 """

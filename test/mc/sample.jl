@@ -17,6 +17,7 @@ Random.seed!(1234)
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
         ),
         sample=SamplingInfo(
             nburns=1000,
@@ -42,6 +43,7 @@ Random.seed!(1234)
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
         ),
         sample=SamplingInfo(
             nburns=1000,
@@ -66,6 +68,7 @@ Random.seed!(1234)
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
         ),
         sample=SamplingInfo(
             nburns=1000,
@@ -88,6 +91,7 @@ Random.seed!(1234)
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
         ),
         sample=SamplingInfo(
             nburns=1000,
@@ -118,6 +122,7 @@ end # testset
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
             storage=StorageInfo(
                 data_dir=pkgdir(SimplexThreeGT, "test", "data"),
             )
@@ -152,6 +157,7 @@ end # testset
         shape=ShapeInfo(
             ndims=2,
             size=2,
+            p=2,
             storage=StorageInfo(
                 data_dir=pkgdir(SimplexThreeGT, "test", "data"),
             )

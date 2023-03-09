@@ -3,10 +3,10 @@ using SimplexThreeGT.Spec
 using SimplexThreeGT.Spec: shape_dir
 using SimplexThreeGT.MonteCarlo: MarkovChain
 
-@testset "MarkovChain(task)" begin
+@testset "MarkovChain(task) d=$d" for d in 3:4
     task = TaskInfo(;
         shape=ShapeInfo(
-            ndims=3,
+            ndims=d,
             size=3,
         ),
         sample=SamplingInfo(
@@ -24,7 +24,7 @@ using SimplexThreeGT.MonteCarlo: MarkovChain
     )
 
     mc = MarkovChain(task)
-    @test isfile(shape_dir(task.shape, "cm-3d-3L-1-2.jls"))
-    @test isfile(shape_dir(task.shape, "cm-3d-3L-2-3.jls"))
+    @test isfile(shape_dir(task.shape, "cm-$(d)d-3L-1-2.jls"))
+    @test isfile(shape_dir(task.shape, "cm-$(d)d-3L-2-3.jls"))
     show(devnull, MIME"text/plain"(), mc)
 end # testset

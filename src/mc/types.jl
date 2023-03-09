@@ -95,8 +95,8 @@ function MarkovChain(
         task::TaskInfo;
         rng::AbstractRNG = Xoshiro(task.seed),
         uuid::UUID = isnothing(task.uuid) ? uuid1() : task.uuid,
-        cm::CellMap = cell_map(task.shape, (task.shape.ndims-1, task.shape.ndims)),
-        gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (task.shape.ndims-2, task.shape.ndims-1)) : nothing,
+        cm::CellMap = cell_map(task.shape, (task.shape.p-1, task.shape.p)),
+        gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (task.shape.p-2, task.shape.p-1)) : nothing,
         spins::BitVector = rand_spins(rng, nspins(cm)),
         field = first(fields(task)),
         temp = task.temperature.start,
