@@ -7,7 +7,7 @@ using Comonicon
 using Configurations: from_toml
 using SimplexThreeGT: SimplexThreeGT
 using SimplexThreeGT.CLI: CLI, foreach_shape, foreach_field
-using SimplexThreeGT.Spec: Spec, TaskInfo
+using SimplexThreeGT.Spec: Spec, TaskInfo, guarantee_dir
 
 function slurm(name::String, nthreads::Int, mem::Int, cmds::Vector{String})
     """#!/bin/bash
@@ -23,7 +23,7 @@ function slurm(name::String, nthreads::Int, mem::Int, cmds::Vector{String})
 end
 
 @cast function csm()
-    ispath(CLI.slurm_dir()) || mkpath(CLI.slurm_dir())
+    guarantee_dir(CLI.slurm_dir())
     main_jl = CLI.root_dir("main.jl")
     task_file = CLI.task_dir("csm-$(d)d$(L)L.toml")
 
@@ -42,7 +42,7 @@ end
 end
 
 @cast function annealing()
-    ispath(CLI.slurm_dir()) || mkpath(CLI.slurm_dir())
+    guarantee_dir(CLI.slurm_dir())
     main_jl = CLI.root_dir("main.jl")
 
     foreach_shape() do d, L
@@ -79,6 +79,7 @@ To run a subset of the schedule, use `resample` command manually.
         total::Int=100, each::Int=10
     )
 
+    guarantee_dir(CLI.slurm_dir())
     main_jl = CLI.root_dir("main.jl")
     njobs = total ÷ each
 
@@ -99,6 +100,7 @@ To run a subset of the schedule, use `resample` command manually.
                 "julia --project $main_jl resample --ndims=$ndims --size=$size --uuid=$uuid --repeat=$each"
             ])
             slurm_script = CLI.slurm_dir("binning_$uuid.sh")
+            
             open(slurm_script, "w") do io
                 println(io, script)
             end
