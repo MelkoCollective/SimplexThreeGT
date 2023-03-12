@@ -16,3 +16,9 @@ sync ndims size:
 
 pluto:
     julia --project -e 'using Pluto; Pluto.run()'
+
+clean:
+    rm -rf scripts/slurm
+    rm -rf scripts/task
+    rm logs/*
+
