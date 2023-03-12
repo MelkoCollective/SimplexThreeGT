@@ -103,10 +103,10 @@ To run a subset of the schedule, use `resample` command manually.
                 println(io, script)
             end
 
-            # for _ in 1:njobs
-            #     @info "run(`sbatch $slurm_script`)"
-            #     run(`sbatch $slurm_script`)
-            # end
+            for _ in 1:njobs
+                @info "run(`sbatch $slurm_script`)"
+                run(`sbatch $slurm_script`)
+            end
         end
     end # foreach_shape
 end
