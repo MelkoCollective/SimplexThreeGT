@@ -4,8 +4,10 @@ emit slurm scripts at `scripts/slurm`
 @cast module Slurm
 
 using Comonicon
+using Configurations: from_toml
+using SimplexThreeGT: SimplexThreeGT
 using SimplexThreeGT.CLI: CLI, foreach_shape, foreach_field
-using SimplexThreeGT.Spec: Spec
+using SimplexThreeGT.Spec: Spec, TaskInfo
 
 function slurm(name::String, nthreads::Int, mem::Int, cmds::Vector{String})
     """#!/bin/bash
@@ -16,7 +18,7 @@ function slurm(name::String, nthreads::Int, mem::Int, cmds::Vector{String})
     #SBATCH --job-name=$name
     #SBATCH -o logs/%j.out
     #SBATCH -e logs/%j.err
-    module load julia/1.8.1
+    module load julia/1.8.5
     """ * join(cmds, "\n")
 end
 
@@ -70,43 +72,43 @@ To run a subset of the schedule, use `resample` command manually.
 
 # Options
 
-- `--ndims <range>`: range of ndims to run.
-- `--sizes <range>`: range of sizes to run.
 - `--total <int>`: total number of points to run.
 - `--each <int>`: number of points to run for each job.
 """
-@cast function binning(;
-        ndims::String, sizes::String,
+@cast function binning(path = pkgdir(SimplexThreeGT, "data");
         total::Int=100, each::Int=10
     )
+
     main_jl = CLI.root_dir("main.jl")
-    parse_range(s::String) = UnitRange(map(x->parse(Int, x), split(s, ":"))...)
-    main_jl = CLI.root_dir("main.jl")
-    ndims = parse_range(ndims)
-    sizes = parse_range(sizes)
     njobs = total ÷ each
 
-    for d in ndims, L in sizes
-        shape = Spec.ShapeInfo(;ndims=d, size=L)
-        for file in readdir(Spec.task_dir(shape, "task_images"))
+    for cm_dir in readdir(path)
+        cm_dir == "shape" && continue
+        task_images = joinpath(path, cm_dir, "task_images")
+        resample = joinpath(path, cm_dir, "resample")
+        resampled_uuids = isdir(resample) ? readdir(resample) : []
+        for file in readdir(task_images)
             uuid = splitext(file)[1]
+            uuid in resampled_uuids && continue
 
-            @info "binning" ndims=d size=L uuid=uuid
-            script = slurm("binning_$(d)d$(L)L_$uuid", 1, 4, [
-                "julia --project $main_jl resample --ndims=$d --size=$L --uuid=$uuid --repeat=$each"
+            info = from_toml(TaskInfo, joinpath(task_images, "$uuid.toml"))
+            ndims, size = info.shape.ndims, info.shape.size
+
+            @info "binning" ndims size uuid
+            script = slurm("binning_$(ndims)d$(size)L_$uuid", 1, 4, [
+                "julia --project $main_jl resample --ndims=$ndims --size=$size --uuid=$uuid --repeat=$each"
             ])
-
             slurm_script = CLI.slurm_dir("binning_$uuid.sh")
             open(slurm_script, "w") do io
                 println(io, script)
             end
 
-            for _ in 1:njobs
-                @info "run(`sbatch $slurm_script`)"
-                run(`sbatch $slurm_script`)
-            end
-        end # foreach uuid
-    end
+            # for _ in 1:njobs
+            #     @info "run(`sbatch $slurm_script`)"
+            #     run(`sbatch $slurm_script`)
+            # end
+        end
+    end # foreach_shape
 end
 
 end # module
