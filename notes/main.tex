@@ -347,6 +347,51 @@ we can write down the general partition function as a tensor
 network where every $c_{p+1}$ has a $2(p+1)$ leg tensor
 connects to its neighboring $c_{p+1}$.
 
+\section{Cluster update for the p-cell model}
+
+\subsection{Fortuin-Kasteleyn cluster decomposition}
+
+The Fortuin-Kasteleyn cluster decomposition is straightforward
+to generalize on our $p$-cell model by writing
+
+\begin{equation}
+    \begin{aligned}
+        E &= -\sum_{c_{p+1}}\prod_{c_{p}\in c_{p+1}} \sigma_{c_p}\\
+        E_{c^{\prime}_{p+1}} &= -\sum_{c_{p+1}\neq c^{\prime}_{p+1}}\prod_{c_{p}\in c_{p+1}} \sigma_{c_p}\\
+    \end{aligned}
+\end{equation}
+
+now we define partition function on the $(p+1)$-cell that has the same
+spins and $(p+1)$-cell that has different spins.
+
+\begin{equation}
+    \begin{aligned}
+        Z_{c^{\prime}_{p+1}}^{\text{same}} &= \sum_{s} \delta_{c_{p+1}^{\prime}} e^{-\beta E_{c^{\prime}_{p+1}}}
+        &Z_{c^{\prime}_{p+1}}^{\text{diff}} &= \sum_{s} (1 - \delta_{c_{p+1}^{\prime}}) e^{-\beta E_{c^{\prime}_{p+1}}}
+    \end{aligned}
+\end{equation}
+
+and the total partition function becomes
+
+\begin{equation}
+    Z = e^{\beta} Z_{c^{\prime}_{p+1}}^{\text{same}} + e^{-\beta}Z_{c^{\prime}_{p+1}}^{\text{diff}}
+\end{equation}
+
+furthermore, define
+
+\begin{equation}
+    Z_{c^{\prime}_{p+1}}^{ind} = \sum_{s} e^{-E_{c^{\prime}_{p+1}}} = Z_{c^{\prime}_{p+1}}^{\text{same}} + Z_{c^{\prime}_{p+1}}^{\text{diff}}
+\end{equation}
+
+we have the same partition function as standard Ising model
+
+\begin{equation}
+    Z = (e^{\beta} - e^{-\beta}) Z_{c^{\prime}_{p+1}}^{\text{same}} + e^{-\beta} Z_{c_{p+1}^{\prime}}^{ind}
+\end{equation}
+
+this means the SW updates and Wolf update still holds as a cluster
+on $(p+1)$-cell chains.
+
 \bibliographystyle{plain}
 \bibliography{ref}
 

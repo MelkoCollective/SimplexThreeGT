@@ -1,3 +1,5 @@
 \babel@toc {english}{}\relax 
 \contentsline {section}{\numberline {1}Residual entropy and counting ground state degeneracy}{1}{section.1}%
-\contentsline {section}{\numberline {2}Tensor network calculation of partition function}{2}{section.2}%
+\contentsline {section}{\numberline {2}Tensor network calculation of partition function}{3}{section.2}%
+\contentsline {section}{\numberline {3}Cluster update for the p-cell model}{3}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Fortuin-Kasteleyn cluster decomposition}{3}{subsection.3.1}%
