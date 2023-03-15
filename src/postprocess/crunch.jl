@@ -24,6 +24,7 @@ function error_analysis(df::DataFrame)
         :E => mean => "E", :E => std => "E(std)",
         "E^2" => mean => "E^2", "E^2" => std => "E^2(std)",
         :Cv => mean => "Cv", :Cv => std => "Cv(std)",
+        :M => mean => "M", :M => std => "M(std)",
     )
 end
 

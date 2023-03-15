@@ -13,6 +13,8 @@ sync ndims size:
     NAME=cm-{{ndims}}d-{{size}}L
     rsync -avzcP $REMOTE/$NAME/task_images data/$NAME/
     rsync -avzcP $REMOTE/$NAME/annealing data/$NAME/
+    rsync -avzcP $REMOTE/$NAME/resample data/$NAME/
+    rsync -avzcP $REMOTE/$NAME/resample_images data/$NAME/
 
 pluto:
     julia --project -e 'using Pluto; Pluto.run()'
