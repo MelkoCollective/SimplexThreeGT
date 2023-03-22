@@ -95,14 +95,23 @@ already exist. See also [`CellMap`](@ref).
 - `p1`: dimension of the `p1`-cells
 - `p2`: dimension of the `p2`-cells
 """
-function cell_map(shape::ShapeInfo, p::Tuple{Int, Int})
-    name = shape_name(shape) * "-$(p[1])-$(p[2])"
-    cache = shape_dir(shape, name * ".jls")
+function cell_map(storage::StorageInfo, shape::ShapeInfo, p::Tuple{Int, Int})
+    name = name(shape) * "-$(p[1])-$(p[2])"
+    cache = topo_dir(storage, shape, name * ".jls")
     isfile(cache) && return deserialize(cache)
-    with_shape_log(shape, name) do
+    with_shape_log(storage, shape, name) do
         cm = CellMap(shape.ndims, shape.size, p)
         @debug "serializing cm to $cache"
         serialize(cache, cm)
         return cm
     end
+end
+
+function cell_map(storage::StorageInfo, job::CellMapInfo)
+    cell_map(storage, job.shape, (job.shape.p-1, job.shape.p))
+end
+
+function gauge_map(storage::StorageInfo, job::CellMapInfo)
+    job.gauge || return nothing
+    return cell_map(storage, job.shape, (job.shape.p-2, job.shape.p-1))
 end

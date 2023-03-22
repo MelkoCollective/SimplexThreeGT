@@ -1,51 +1,72 @@
-function burn!(mc::MarkovChain, task::TaskInfo)
-    for _ in 1:task.sample.nburns
+function burn!(mc::MarkovChain, nburns::Int)
+    for _ in 1:nburns
         mcmc_step!(mc)
     end
     return mc
 end
 
-function sample!(mc::MarkovChain, task::TaskInfo)
+function sample!(mc::MarkovChain, info::SamplingInfo)
     init!(mc)
-    nthrows = if isnothing(task.sample.nthrows)
-        nspins(mc.cm)÷2
+
+    step! = if info.order == Random
+        mcmc_step!
+    elseif info.order == TypeWriter
+        typewriter_step!
     else
-        task.sample.nthrows
+        error("unknown order: $(info.order)")
     end
 
-    gauge_nthrows = if task.sample.gauge && isnothing(task.sample.gauge_nthrows)
-        nspins(mc.gauge)÷2
-    else
-        task.sample.gauge_nthrows
-    end
-
-    for _ in 1:task.sample.nsamples
-        for _ in 1:nthrows
-            mcmc_step!(mc)
+    for _ in 1:info.nsamples
+        for _ in 1:info.nthrows
+            step!(mc)
         end
 
-        task.sample.gauge && for _ in 1:gauge_nthrows
+        isnothing(info.gauge) || for _ in 1:info.gauge.step
             gauge_step!(mc)
         end
         collect!(mc)
     end
-
-    finalize!(mc, task.sample.nsamples)
+    finalize!(mc, info.nsamples)
     return mc
 end
 
-function annealing(task::TaskInfo)
-    mcmc = MarkovChain(task)
-    annealing!(mcmc, task)
-    return mcmc
+function annealing(job::AnnealingJob)
+    save_task_image(job)
+    pmap(job.tasks) do task::AnnealingTask
+        cm = cell_map(job.storage, job.cellmap)
+        gauge = gauge_map(job.storage, job.cellmap)
+
+        rng = Xoshiro(task.seed)
+        spins = rand_spins(rng, nspins(cm))
+        field = task.field
+
+        chain = MarkovChain(;
+            rng,
+            uuid = task.uuid,
+            cm, gauge,
+            state = State(
+                spins,
+                temp = first(job.temperature),
+                energy = energy(cm, spins, field),
+                field,
+            ),
+        )
+
+        with_task_log(task, "annealing-$(task.uuid)") do
+            @info "annealing started"
+            checkpoint(chain, job) do checkpoint_agent
+                @progress name="h=$(field)" for T in job.temperature
+                    chain.state.temp = T
+                    burn!(chain, job.nburns)
+                    checkpoint_agent()
+                end
+            end # checkpoint
+        end # with_task_log
+    end
 end
 
-function annealing!(mcmc::MarkovChain, task::TaskInfo)
-    isnothing(task.uuid) || error("annealing task should not have a uuid")
-    isnothing(task.repeat) || error("annealing task should not have a repeat")
-    isnothing(task.sample.nburns) && error("annealing task should have nburns")
-
-    save_task_image(task, mcmc.uuid)
+function annealing!(mcmc::MarkovChain, task::AnnealingJob)
+    save_task_image(task)
     ispath(task_dir(task, "annealing")) || mkpath(task_dir(task, "annealing"))
     data_file = task_dir(task, "annealing", "$(mcmc.uuid).csv")
 

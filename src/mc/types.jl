@@ -34,6 +34,7 @@ Get the name of an observable.
 observable_name(::Observable{Tag}) where Tag = Tag
 
 Base.@kwdef mutable struct State
+    accept::Int
     spins::BitVector
     temp::Float64
     energy::Float64
@@ -73,6 +74,30 @@ end
 Get the names of the observables in a Markov chain.
 """
 observable_names(mc::MarkovChain) = map(observable_name, mc.obs)
+
+function annealing_chains(job::AnnealingJob)
+    cm = cell_map(job.storage, job.cellmap)
+    gauge = gauge_map(job.storage, job.cellmap)
+
+    return map(job.tasks) do task::AnnealingTask
+        rng = Xoshiro(task.seed)
+        spins = rand_spins(rng, nspins(cm))
+        field = task.field
+
+        MarkovChain(;
+            rng,
+            uuid = task.uuid,
+            cm, gauge,
+            state = State(
+                spins,
+                temp = first(job.temperature),
+                energy = energy(cm, spins, field),
+                field,
+            ),
+            obs = (), # no observables for annealing
+        )
+    end
+end
 
 """
     $(SIGNATURES)

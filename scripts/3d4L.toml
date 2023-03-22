@@ -18,3 +18,8 @@ observables = ["E", "E^2", "M"]
 start = 4.6
 step = 0.01
 stop = 0.1
+
+[extern_field]
+start = 1.0
+step = 0.01
+stop = 0.0

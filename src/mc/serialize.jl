@@ -6,10 +6,8 @@ function write_checkpoint(io::IO, mc::MarkovChain)
     return
 end
 
-function checkpoint(f, mc::MarkovChain, task::TaskInfo)
-    path = task_dir(task, "checkpoints")
-    ispath(path) || mkpath(path)
-    checkpoint_file = task_dir(task, "checkpoints", "$(mc.uuid).checkpoint")
+function checkpoint(f, mc::MarkovChain, job::AnnealingJob)
+    checkpoint_file = checkpoint_dir(job, "$(mc.uuid).checkpoint")
     return open(checkpoint_file, "a+") do io
         function agent()
             write_checkpoint(io, mc)
@@ -39,11 +37,8 @@ function record(f, data_file::String)
     end
 end
 
-function save_task_image(task::TaskInfo, uuid::UUID, tag::String="task")
-    let path = task_dir(task, "$(tag)_images")
-        ispath(path) || mkpath(path)
-    end
-    to_toml(task_dir(task, "$(tag)_images", "$(uuid).toml"), task)
+function save_task_image(job::AnnealingJob)
+    to_toml(task_image_dir(job, "$(job.uuid).toml"), job)
 end
 
 function read_checkpoint(task::TaskInfo, seed=task.seed)
