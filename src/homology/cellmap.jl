@@ -97,9 +97,9 @@ already exist. See also [`CellMap`](@ref).
 """
 function cell_map(storage::StorageInfo, shape::ShapeInfo, p::Tuple{Int, Int})
     name = name(shape) * "-$(p[1])-$(p[2])"
-    cache = topo_dir(storage, shape, name * ".jls")
+    cache = topo_dir(storage, name * ".jls")
     isfile(cache) && return deserialize(cache)
-    with_shape_log(storage, shape, name) do
+    with_log(storage, name) do
         cm = CellMap(shape.ndims, shape.size, p)
         @debug "serializing cm to $cache"
         serialize(cache, cm)
@@ -107,11 +107,11 @@ function cell_map(storage::StorageInfo, shape::ShapeInfo, p::Tuple{Int, Int})
     end
 end
 
-function cell_map(storage::StorageInfo, job::CellMapInfo)
+function cell_map(storage::StorageInfo, job::CellMapOption)
     cell_map(storage, job.shape, (job.shape.p-1, job.shape.p))
 end
 
-function gauge_map(storage::StorageInfo, job::CellMapInfo)
+function gauge_map(storage::StorageInfo, job::CellMapOption)
     job.gauge || return nothing
     return cell_map(storage, job.shape, (job.shape.p-2, job.shape.p-1))
 end
