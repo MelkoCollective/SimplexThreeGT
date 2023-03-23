@@ -1,8 +1,4 @@
-export nspins, name,
-    data_dir, log_dir,
-    topo_dir, checkpoint_dir,
-    task_image_dir, sample_dir
-
+export nspins, name, data_dir, checkpoint_dir, sample_dir
 
 function nspins(info::ShapeInfo)
     N0 = info.size^info.ndims  #number of vertices
@@ -28,6 +24,7 @@ end
 
 for name in (:log, :topo, :checkpoint, :image, :sample)
     @eval begin
+        export $(Symbol(name, :_dir))
         function $(Symbol(name, :_dir))(info::StorageInfo, xs::String...)
             subdata_dir(info, $(string(name)), xs...)
         end
