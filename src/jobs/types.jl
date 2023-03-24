@@ -141,8 +141,9 @@ function ResampleJob(job::SimulationJob)
         job.shape,
         job.storage,
         job.sample,
-        job.fields,
-        job.temperatures,
+        # only resample where we saved checkpoints
+        fields = job.checkpoint.fields,
+        temperatures = job.checkpoint.temperatures,
     )
 end
 
