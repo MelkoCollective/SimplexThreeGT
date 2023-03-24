@@ -35,6 +35,7 @@ observable_name(::Observable{Tag}) where Tag = Tag
 
 Base.@kwdef mutable struct State
     accept::Int = 0
+    nsteps::Int = 0
     spins::BitVector
     temp::Float64
     energy::Float64

@@ -65,7 +65,7 @@ function CellMap(
     p1p2 = Dict{Int, Set{Int}}()
     p2p1 = Dict{Int, Set{Int}}()
     @withprogress name="generate cell map" begin
-        for p2_cell in p2_points
+        for (p2_idx, p2_cell) in enumerate(p2_points)
             p2_id = p2_labels[p2_cell]
             for p1_topo in topo.sets[p1+1]
                 p1_cell = p2_cell[p1_topo]
@@ -73,7 +73,7 @@ function CellMap(
                 push!(get!(Set{Int}, p1p2, p1_id), p2_id)
                 push!(get!(Set{Int}, p2p1, p2_id), p1_id)
             end
-            @logprogress 1/length(p2_points)
+            @logprogress p2_idx/length(p2_points)
         end
     end # withprogress
     return CellMap(ndims, L, (p1, p2), p1p2, p2p1)

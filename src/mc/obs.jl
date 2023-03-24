@@ -57,3 +57,13 @@ function collect!(ob::Observable{Symbol("M^2")}, mc::MarkovChain)
     ob.value += sum_spins(mc.state.spins)^2
     return ob
 end
+
+collect!(ob::Observable{:accept_rate}, ::MarkovChain) = ob
+function finalize!(ob::Observable{:accept_rate}, mc::MarkovChain, nsamples::Int)
+    ob.value = mc.state.accept/mc.state.nsteps
+    ob.final = true
+    # acount again at each sample point
+    mc.state.accept = 0
+    mc.state.nsteps = 0
+    return ob
+end

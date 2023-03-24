@@ -11,6 +11,7 @@ end
 function burn!(mc::MarkovChain, info::SamplingInfo)
     for _ in 1:info.nburns
         sample_step!(mc, info)
+        gauge!(mc, info)
     end
     return mc
 end

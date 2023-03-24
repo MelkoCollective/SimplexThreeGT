@@ -47,6 +47,7 @@ export AnnealingJob
 @option struct AnnealingJob <: Job
     uuid::UUID = uuid1()
     njobs::Int
+    walltime::String = "1-00:00:00" # slurm walltime default 1 day
 
     shape::ShapeInfo
     storage::StorageInfo
@@ -71,6 +72,7 @@ export ResampleJob
     uuid::UUID = uuid1()
     parent::UUID # previous job uuid
     njobs::Int
+    walltime::String = "1-00:00:00" # slurm walltime default 1 day
     shape::ShapeInfo
     storage::StorageInfo
     sample::ResampleInfo
@@ -84,6 +86,7 @@ export SimulationJob
     uuid::UUID = uuid1() # task uuid
     seed::UInt
     njobs::Int # number of resample jobs to run
+    walltime::String = "1-00:00:00" # slurm walltime default 1 day
 
     shape::ShapeInfo
     storage::StorageInfo
@@ -100,6 +103,7 @@ function AnnealingJob(job::SimulationJob)
         # simulation job
         job.uuid,
         job.njobs,
+        job.walltime,
         job.shape,
         job.storage,
         sample=job.sample.option,
@@ -116,6 +120,7 @@ function ResampleJob(job::SimulationJob)
         job.uuid,
         parent = job.uuid,
         job.njobs,
+        job.walltime,
         job.shape,
         job.storage,
         job.sample,

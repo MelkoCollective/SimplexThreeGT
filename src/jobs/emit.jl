@@ -209,7 +209,7 @@ function (opt::SlurmOptions)(name::String, cmds::Vector{String};
 end
 
 function emit_slurm!(ctx::EmitContext, job::AnnealingJob)
-    option = SlurmOptions(;job.storage)
+    option = SlurmOptions(;job.storage, time=job.walltime)
 
     slurm_script = option("cm-" * name(job.shape), [
         "cellmap",
@@ -235,9 +235,27 @@ function emit_slurm!(ctx::EmitContext, job::AnnealingJob)
     return
 end
 
+function slurm_time(time::String)
+    m = match(r"(\d+)-(\d+):(\d+):(\d+)", time)
+    isnothing(m) && return
+    return (
+        days=parse(Int, m[1]),
+        hours=parse(Int, m[2]),
+        minutes=parse(Int, m[3]),
+        seconds=parse(Int, m[4]),
+    )
+end
+
 function emit_slurm_crunch_checkpoint!(ctx::EmitContext, job::AnnealingJob)
     isempty(ctx.annealing_job_id) && error("annealing job not submitted")
-    option = SlurmOptions(;job.storage)
+    # crunching checkpoint won't be too long let's hardcode it
+    if slurm_time(job.walltime) < (days=0, hours=2, minutes=0, seconds=0)
+        time = job.walltime
+    else
+        time = "0-02:00:00" # 2 hours maximum since this should be fast
+    end
+
+    option = SlurmOptions(;job.storage, time)
     slurm_script = option("crunch-checkpoint", [
             "crunch", "checkpoint",
             "--path", job.storage.path,
@@ -259,7 +277,7 @@ function emit_slurm!(ctx::EmitContext, job::ResampleJob)
         )
     end
 
-    option = SlurmOptions(;job.storage)
+    option = SlurmOptions(;job.storage, time=job.walltime)
     deps = isempty(ctx.checkpoint_crunch_job_id) ? String[] : [ctx.checkpoint_crunch_job_id]
     slurm_script = option("rs-" * name(job.shape), [
             "resample",
