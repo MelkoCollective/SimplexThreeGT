@@ -1,5 +1,7 @@
 @cast module Crunch
 
+using Logging: with_logger
+using TerminalLoggers: TerminalLogger
 using Comonicon
 using SimplexThreeGT.Jobs
 using SimplexThreeGT.Checkpoint
@@ -38,7 +40,9 @@ crunch the sample data.
 """
 @cast function sample(;job::String, path::String="data", tags::String="")
     storage = StorageInfo(path, tags)
-    PostProcess.postprocess(storage, job)
+    with_logger(TerminalLogger()) do
+        PostProcess.postprocess(storage, job)
+    end
     return
 end
 

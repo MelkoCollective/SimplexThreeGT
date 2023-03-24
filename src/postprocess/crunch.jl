@@ -3,10 +3,16 @@ using DataFrames: DataFrame, groupby, combine
 using ..Jobs
 using Configurations: to_dict, from_toml
 using BinningAnalysis
+using ProgressLogging: @withprogress, @logprogress
 
 function crunch(info::StorageInfo, uuid::String)
-    return mapreduce(vcat, readdir(sample_dir(info, uuid))) do file
-        DataFrame(CSV.File(sample_dir(info, uuid, file)))
+    csv_files = readdir(sample_dir(info, uuid))
+    ncsv_files = length(csv_files)
+    return @withprogress name="crunching csv files for $(uuid)" begin
+        mapreduce(vcat, 1:ncsv_files, csv_files) do idx, file
+            @logprogress idx/ncsv_files
+            DataFrame(CSV.File(sample_dir(info, uuid, file)))
+        end
     end
 end
 
