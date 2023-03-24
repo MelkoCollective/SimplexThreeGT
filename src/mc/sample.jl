@@ -68,11 +68,11 @@ function resample(task::ResampleOptions)
         record(sample_file(task)) do record_agent
             task_itr = Iterators.product(chains, 1:task.sample.nrepeat)
             total_tasks = length(task_itr)
-            @withprogress name="resample    " begin
+            @withprogress name="resample  " begin
                 for (task_idx, (chain, idx)) in enumerate(task_itr)
                     sample!(chain, task.sample)
                     record_agent(chain)
-                    @logprogress @sprintf("epoch=%5i", idx) task_idx/total_tasks
+                    @logprogress @sprintf("epoch %3i", idx) task_idx/total_tasks
                 end
             end # @withprogress
         end # record

@@ -21,15 +21,20 @@ function specific_heat!(df::DataFrame, ndims::Int, L::Int)
 end
 
 function binning(x)
-    bin = LogBinner(x)
+    bin = LogBinner(eltype(x))
+    append!(bin, x)
     return [(mean(bin), std_error(bin), tau(bin), count(bin))]
+end
+
+function binning_transform(name::Symbol)
+    cols = [string(name, "(", type, ")") for type in ("mean", "std", "tau", "count")]
+    return name => binning => cols
 end
 
 function error_analysis(df::DataFrame)
     transforms = []
     for ob in filter(p -> !(p in (:field, :temp)), propertynames(df))
-        cols = [string(ob, "(", type, ")") for type in ("mean", "std", "tau", "count")]
-        push!(transforms, ob => binning => cols)
+        push!(transforms, binning_transform(ob))
     end
     return combine(groupby(df, [:field, :temp]), transforms...)
 end
