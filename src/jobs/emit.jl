@@ -124,7 +124,7 @@ end
 
 function emit_task!(ctx::EmitContext, job::ResampleJob)
     to_toml(image_dir(job, "$(job.uuid).toml"), job)
-    task_itr = div_job(job.sample.nrepeat, length(job.fields), length(job.temperatures), job.njobs)
+    task_itr = div_job(length(job.temperatures), length(job.fields), job.sample.nrepeat, job.njobs)
     ctx.n_resample_jobs = length(task_itr)
     for (task_id, task) in enumerate(task_itr)
         option = ResampleOptions(;
