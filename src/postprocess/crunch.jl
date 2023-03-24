@@ -1,9 +1,8 @@
 using CSV: CSV
-using Statistics: mean, std
 using DataFrames: DataFrame, groupby, combine
 using ..Jobs
 using Configurations: to_dict, from_toml
-
+using BinningAnalysis
 
 function crunch(info::StorageInfo, uuid::String)
     return mapreduce(vcat, readdir(sample_dir(info, uuid))) do file
@@ -21,11 +20,16 @@ function specific_heat!(df::DataFrame, ndims::Int, L::Int)
     return df
 end
 
+function binning(x)
+    bin = LogBinner(x)
+    return [(mean(bin), std_error(bin), tau(bin))]
+end
+
 function error_analysis(df::DataFrame)
     transforms = []
     for ob in filter(p -> !(p in (:field, :temp)), propertynames(df))
-        push!(transforms, ob => mean => string(ob))
-        push!(transforms, ob => std => string(ob, "(std)"))
+        cols = [string(ob, "(", type, ")") for type in ("mean", "std", "tau")]
+        push!(transforms, ob => binning => cols)
     end
     return combine(groupby(df, [:field, :temp]), transforms...)
 end
