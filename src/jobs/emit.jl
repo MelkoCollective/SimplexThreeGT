@@ -66,6 +66,7 @@ function emit_task!(ctx::EmitContext, job::AnnealingJob)
             sample = job.sample,
             temperatures = job.temperatures,
             fields = collect(fields),
+            checkpoint = job.checkpoint,
         )
         file = guarantee_dir(temp_dir(job, "annealing"), "$idx.toml")
         to_toml(file, option)

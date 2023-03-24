@@ -9,7 +9,10 @@ end
 function checkpoint(f, mc::MarkovChain, task::AnnealingOptions)
     return open(checkpoint_file(task), "a+") do io
         function agent()
-            write_checkpoint(io, mc)
+            if mc.state.field in task.checkpoint.fields &&
+                mc.state.temp in task.checkpoint.temperatures
+                write_checkpoint(io, mc)
+            end
         end
         f(agent)
     end

@@ -43,6 +43,12 @@ end
 
 abstract type Job <: Info end
 
+export CheckpointRange
+@option struct CheckpointRange <: Job
+    temperatures::TOMLRange
+    fields::TOMLRange
+end
+
 export AnnealingJob
 @option struct AnnealingJob <: Job
     uuid::UUID = uuid1()
@@ -56,6 +62,11 @@ export AnnealingJob
     sample::SamplingInfo
     temperatures::TOMLRange
     fields::TOMLRange
+
+    checkpoint::CheckpointRange = CheckpointRange(
+        temperatures = temperatures,
+        fields = fields,
+    )
 end
 
 export ResampleInfo
@@ -94,6 +105,11 @@ export SimulationJob
 
     temperatures::TOMLRange
     fields::TOMLRange
+
+    checkpoint::CheckpointRange = CheckpointRange(
+        temperatures = temperatures,
+        fields = fields,
+    )
 end
 
 function AnnealingJob(job::SimulationJob)
@@ -109,6 +125,7 @@ function AnnealingJob(job::SimulationJob)
         sample=job.sample.option,
         job.temperatures,
         job.fields,
+        job.checkpoint,
     )
 end
 
@@ -164,6 +181,7 @@ export AnnealingOptions
 
     temperatures::TOMLRange
     fields::FieldList
+    checkpoint::CheckpointRange
 end
 
 export ResampleOptions
