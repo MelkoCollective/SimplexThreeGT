@@ -41,7 +41,7 @@ end
 function annealing(task::AnnealingOptions)
     chain = MarkovChain(task)
     with_log(task.storage, "annealing-$(task.uuid)") do
-        @info "annealing started"
+        @info "annealing started" task
         checkpoint(chain, task) do checkpoint_agent
             @withprogress name="annealing" begin
                 n_fields = length(task.fields)
