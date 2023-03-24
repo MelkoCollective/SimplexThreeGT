@@ -1,0 +1,32 @@
+njobs = 800
+seed = 1234
+walltime = "1-00:00:00"
+
+[shape]
+ndims = 4
+p = 3
+size = 4
+
+[storage]
+path = "data"
+tags = []
+
+[sample]
+nrepeat = 200
+nsamples = 500_000
+nthrows = 100
+observables = ["E", "E^2", "M", "M^2", "accept_rate"]
+
+    [sample.option]
+    nburns = 5000
+    order = "random"
+
+[fields]
+start = 0.0
+step = 0.01
+stop = 1.0
+
+[temperatures]
+start = 10.0
+step = -0.05
+stop = 0.05
