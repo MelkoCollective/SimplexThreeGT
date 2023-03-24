@@ -104,6 +104,7 @@ end
 ###### Slurm ######
 
 Base.@kwdef struct SlurmOptions
+    storage::StorageInfo
     nthreads::Int = 1
     mem::Int = 8
     max_njobs::Int = 800
@@ -133,11 +134,11 @@ function (opt::SlurmOptions)(name::String, cmds::Vector{String};
         else
             push!(lines, "#SBATCH --array=1-$(njobs)")
         end
-        push!(lines, "#SBATCH --output=logs/%A_%a.out")
-        push!(lines, "#SBATCH --error=logs/%A_%a.err")
+        push!(lines, "#SBATCH --output=$(Jobs.log_dir(opt.storage, "slurm-%A_%a.out"))")
+        push!(lines, "#SBATCH --error=$(Jobs.log_dir(opt.storage, "slurm-%A_%a.err"))")
     else
-        push!(lines, "#SBATCH --output=logs/%j.out")
-        push!(lines, "#SBATCH --error=logs/%j.err")
+        push!(lines, "#SBATCH --output=$(Jobs.log_dir(opt.storage, "slurm-%j.out"))")
+        push!(lines, "#SBATCH --error=$(Jobs.log_dir(opt.storage, "slurm-%j.err"))")
     end
 
     if !isempty(deps)
@@ -161,7 +162,7 @@ function (opt::SlurmOptions)(name::String, cmds::Vector{String};
 end
 
 function emit_slurm!(ctx::EmitContext, job::AnnealingJob)
-    option = SlurmOptions()
+    option = SlurmOptions(;job.storage)
 
     slurm_script = option("cm-" * name(job.shape), [
         "cellmap",
@@ -189,7 +190,7 @@ end
 
 function emit_slurm_crunch_checkpoint!(ctx::EmitContext, job::AnnealingJob)
     isempty(ctx.annealing_job_id) && error("annealing job not submitted")
-    option = SlurmOptions()
+    option = SlurmOptions(;job.storage)
     slurm_script = option("crunch-checkpoint", [
             "crunch", "checkpoint",
             "--path", job.storage.path,
@@ -211,7 +212,7 @@ function emit_slurm!(ctx::EmitContext, job::ResampleJob)
         )
     end
 
-    option = SlurmOptions()
+    option = SlurmOptions(;job.storage)
     deps = isempty(ctx.checkpoint_crunch_job_id) ? String[] : [ctx.checkpoint_crunch_job_id]
     slurm_script = option("rs-" * name(job.shape), [
             "resample",
@@ -228,8 +229,11 @@ function emit_slurm!(ctx::EmitContext, job::ResampleJob)
 end
 
 function sbatch(path::String)::String
-    # println("sbatch $path")
-    # return string(rand(Int))
-    out = readchomp(`sbatch $path`)
-    return match(r"Submitted batch job (\d+)", out).captures[1]
+    if get(ENV, "JULIA_TEST", false) in (true, "true", "on")
+        @info "sbatch $path"
+        return string(rand(Int))
+    else
+        out = readchomp(`sbatch $path`)
+        return match(r"Submitted batch job (\d+)", out).captures[1]
+    end
 end
