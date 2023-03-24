@@ -1,5 +1,6 @@
 njobs = 800
 seed = 1234
+walltime = "0-00:30:00"
 
 [shape]
 ndims = 3
@@ -14,7 +15,7 @@ tags = ["test"]
 nrepeat = 200
 nsamples = 5000
 nthrows = 10
-observables = ["E", "E^2", "M", "M^2"]
+observables = ["E", "E^2", "M", "M^2", "accept_rate"]
 
     [sample.option]
     nburns = 1000
