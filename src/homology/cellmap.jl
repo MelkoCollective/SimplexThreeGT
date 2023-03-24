@@ -79,7 +79,7 @@ function CellMap(
     return CellMap(ndims, L, (p1, p2), p1p2, p2p1)
 end
 
-nspins(cm::CellMap) = length(cm.p1p2)
+Jobs.nspins(cm::CellMap) = length(cm.p1p2)
 face_cube_map(n::Int, L::Int) = cell_map(n, L, (2, 3))
 
 """
@@ -96,7 +96,7 @@ already exist. See also [`CellMap`](@ref).
 - `p2`: dimension of the `p2`-cells
 """
 function cell_map(storage::StorageInfo, shape::ShapeInfo, p::Tuple{Int, Int})
-    name = name(shape) * "-$(p[1])-$(p[2])"
+    name = Jobs.name(shape) * "-$(p[1])-$(p[2])"
     cache = topo_dir(storage, name * ".jls")
     isfile(cache) && return deserialize(cache)
     with_log(storage, name) do
@@ -107,11 +107,17 @@ function cell_map(storage::StorageInfo, shape::ShapeInfo, p::Tuple{Int, Int})
     end
 end
 
-function cell_map(storage::StorageInfo, job::CellMapOption)
-    cell_map(storage, job.shape, (job.shape.p-1, job.shape.p))
+function spin_map(storage::StorageInfo, shape::ShapeInfo)
+    cell_map(storage, shape, (shape.p-1, shape.p))
 end
 
-function gauge_map(storage::StorageInfo, job::CellMapOption)
-    job.gauge || return nothing
-    return cell_map(storage, job.shape, (job.shape.p-2, job.shape.p-1))
+function gauge_map(storage::StorageInfo, shape::ShapeInfo)
+    cell_map(storage, shape, (shape.p-2, shape.p-1))
+end
+
+function cell_map(job::CellMapOptions)
+    spin_map(job.storage, job.shape)
+    job.gauge || return
+    gauge_map(job.storage, job.shape)
+    return
 end

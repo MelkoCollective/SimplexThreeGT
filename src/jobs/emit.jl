@@ -5,32 +5,60 @@ Base.@kwdef mutable struct EmitContext
     checkpoint_crunch_job_id::String = ""
 end
 
-function emit(job::AnnealingJob, rjob::ResampleJob)
+function emit(job::AnnealingJob)
     ctx = EmitContext()
     emit_task!(ctx, job)
+    return ctx
+end
+
+function emit(job::SimulationJob)
+    ctx = EmitContext()
+    ajob = AnnealingJob(job)
+    rjob = ResampleJob(job)
+    emit_task!(ctx, ajob)
     emit_task!(ctx, rjob)
-    emit_slurm!(ctx, job)
-    emit_slurm_crunch_checkpoint!(ctx, job)
-    emit_slurm!(ctx, rjob)
     return ctx
 end
 
 function emit(rjob::ResampleJob)
     ctx = EmitContext()
     emit_task!(ctx, rjob)
-    emit_slurm!(ctx, rjob)
     return ctx
 end
 
+function submit(job::AnnealingJob)
+    ctx = emit(job)
+    emit_slurm!(ctx, job)
+    emit_slurm_crunch_checkpoint!(ctx, job)
+    return
+end
+
+function submit(job::SimulationJob)
+    ctx = emit(job)
+    ajob = AnnealingJob(job)
+    rjob = ResampleJob(job)
+    emit_slurm!(ctx, ajob)
+    emit_slurm_crunch_checkpoint!(ctx, ajob)
+    emit_slurm!(ctx, rjob)
+    return
+end
+
+function submit(rjob::ResampleJob)
+    ctx = emit(rjob)
+    emit_slurm!(ctx, rjob)
+    return
+end
+
 function emit_task!(ctx::EmitContext, job::AnnealingJob)
-    to_toml(image_dir(job, "$(job.uuid).toml"), job; sorted=true)
-    cm = CellMapOption(;job.shape, gauge=!isnothing(job.sample.gauge))
-    to_toml(temp_dir(job, "cellmap.toml"), cm; sorted=true)
-    field_per_job = length(job.fields) ÷ job.njobs
+    to_toml(image_dir(job, "$(job.uuid).toml"), job)
+    cm = CellMapOptions(;job.storage, job.shape, gauge=!isnothing(job.sample.gauge))
+    to_toml(temp_dir(job, "cellmap.toml"), cm)
+    field_per_job = length(job.fields) ÷ job.njobs + 1
     job_itr = Iterators.partition(job.fields, field_per_job)
     ctx.n_annealing_jobs = length(job_itr)
     for (idx, fields) in enumerate(job_itr)
         option = AnnealingOptions(;
+            job = job.uuid,
             uuid = uuid1(),
             seed = UInt(rand(UInt16)),
             shape = job.shape,
@@ -40,18 +68,18 @@ function emit_task!(ctx::EmitContext, job::AnnealingJob)
             fields = collect(fields),
         )
         file = guarantee_dir(temp_dir(job, "annealing"), "$idx.toml")
-        to_toml(file, option; sorted=true)
+        to_toml(file, option)
     end
 end
 
 function emit_task!(ctx::EmitContext, job::ResampleJob)
-    to_toml(image_dir(job, "$(job.uuid).toml"), job; sorted=true)
-    per_job = (length(job.fields) * length(job.temperatures)) ÷ job.njobs
-    job_itr = Iterators.partition(Iterators.product(job.fields, job.temperatures), per_job)
+    to_toml(image_dir(job, "$(job.uuid).toml"), job)
+    per_job = (length(job.fields) * length(job.temperatures)) ÷ job.njobs + 1
+    job_itr = Iterators.partition(Iterators.product(job.temperatures, job.fields), per_job)
     ctx.n_resample_jobs = length(job_itr)
     for (job_idx, partition) in enumerate(job_itr)
         fields = Float64[]; temps = Float64[]
-        for (field, temp) in partition
+        for (temp, field) in partition
             push!(fields, field)
             push!(temps, temp)
         end
@@ -69,7 +97,7 @@ function emit_task!(ctx::EmitContext, job::ResampleJob)
             ),
         )
         file = guarantee_dir(temp_dir(job, "resample"), "$job_idx.toml")
-        to_toml(file, option; sorted=true)
+        to_toml(file, option)
     end
 end
 
@@ -135,13 +163,20 @@ end
 function emit_slurm!(ctx::EmitContext, job::AnnealingJob)
     option = SlurmOptions()
 
-    slurm_script = option("cm-" * name(job.shape), ["cm", "--job", string(job.uuid)])
+    slurm_script = option("cm-" * name(job.shape), [
+        "cellmap",
+        "--path", job.storage.path,
+        "--tags", join(job.storage.tags, ','),
+        "--job", string(job.uuid),
+    ])
     slurm_script_path = guarantee_dir(temp_dir(job, "slurm"), "cellmap.sh")
     write(slurm_script_path, slurm_script)
     job_id = sbatch(slurm_script_path)
 
     slurm_script = option("an-" * name(job.shape), [
             "annealing",
+            "--path", job.storage.path,
+            "--tags", join(job.storage.tags, ','),
             "--job", string(job.uuid),
             "--task", "\$SLURM_ARRAY_TASK_ID",
         ]; deps=[job_id], njobs=ctx.n_annealing_jobs,
@@ -156,8 +191,11 @@ function emit_slurm_crunch_checkpoint!(ctx::EmitContext, job::AnnealingJob)
     isempty(ctx.annealing_job_id) && error("annealing job not submitted")
     option = SlurmOptions()
     slurm_script = option("crunch-checkpoint", [
-        "crunch", "checkpoint", "--job", string(job.uuid)];
-        deps=[ctx.annealing_job_id],
+            "crunch", "checkpoint",
+            "--path", job.storage.path,
+            "--tags", join(job.storage.tags, ','),
+            "--job", string(job.uuid),
+        ]; deps=[ctx.annealing_job_id],
     )
 
     slurm_script_path = guarantee_dir(temp_dir(job, "slurm"), "crunch_checkpoint.sh")
@@ -177,6 +215,8 @@ function emit_slurm!(ctx::EmitContext, job::ResampleJob)
     deps = isempty(ctx.checkpoint_crunch_job_id) ? String[] : [ctx.checkpoint_crunch_job_id]
     slurm_script = option("rs-" * name(job.shape), [
             "resample",
+            "--path", job.storage.path,
+            "--tags", join(job.storage.tags, ','),
             "--job", "$(job.parent)", # lead us to crunched checkpoints
             "--task", "\$SLURM_ARRAY_TASK_ID"
         ]; deps, njobs=ctx.n_resample_jobs,

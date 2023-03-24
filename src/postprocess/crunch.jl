@@ -1,16 +1,18 @@
 using CSV: CSV
 using Statistics: mean, std
 using DataFrames: DataFrame, groupby, combine
-using ..Spec: TaskInfo, task_dir
-using Configurations: to_dict, from_dict
+using ..Jobs
+using Configurations: to_dict, from_toml
 
 
-function crunch(info::TaskInfo)
-    isnothing(info.uuid) && error("expect `uuid` specified")
-    resample_dir = task_dir(info, "resample", string(info.uuid))
-    return mapreduce(vcat, readdir(resample_dir)) do file
-        DataFrame(CSV.File(joinpath(resample_dir, file)))
+function crunch(info::StorageInfo, uuid::String)
+    return mapreduce(vcat, readdir(sample_dir(info, uuid))) do file
+        DataFrame(CSV.File(sample_dir(info, uuid, file)))
     end
+end
+
+function specific_heat!(df::DataFrame, shape::ShapeInfo)
+    return specific_heat!(df, shape.ndims, shape.size)
 end
 
 function specific_heat!(df::DataFrame, ndims::Int, L::Int)
@@ -20,19 +22,22 @@ function specific_heat!(df::DataFrame, ndims::Int, L::Int)
 end
 
 function error_analysis(df::DataFrame)
-    return combine(groupby(df, [:field, :temp]),
-        :E => mean => "E", :E => std => "E(std)",
-        "E^2" => mean => "E^2", "E^2" => std => "E^2(std)",
-        :Cv => mean => "Cv", :Cv => std => "Cv(std)",
-        :M => mean => "M", :M => std => "M(std)",
-    )
+    transforms = []
+    for ob in filter(p -> !(p in (:field, :temp)), propertynames(df))
+        push!(transforms, ob => mean => string(ob))
+        push!(transforms, ob => std => string(ob, "(std)"))
+    end
+    return combine(groupby(df, [:field, :temp]), transforms...)
 end
 
-function postprocess(info::TaskInfo)
-    df = crunch(info)
-    specific_heat!(df, info.shape.ndims, info.shape.size)
+function postprocess(info::StorageInfo, uuid::String)
+    job = from_toml(
+        AnnealingJob,
+        Jobs.image_dir(info, "annealing", "$(uuid).toml")
+    )
+    df = crunch(job.storage, uuid)
+    specific_heat!(df, job.shape)
     df = error_analysis(df)
-    ispath(task_dir(info, "crunch")) || mkpath(task_dir(info, "crunch"))
-    CSV.write(task_dir(info, "crunch", string(info.uuid, ".csv")), df)
+    CSV.write(Jobs.crunch_dir(info, "$(uuid).csv"), df)
     return
 end

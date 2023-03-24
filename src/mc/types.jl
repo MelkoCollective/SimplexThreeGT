@@ -34,7 +34,7 @@ Get the name of an observable.
 observable_name(::Observable{Tag}) where Tag = Tag
 
 Base.@kwdef mutable struct State
-    accept::Int
+    accept::Int = 0
     spins::BitVector
     temp::Float64
     energy::Float64
@@ -75,76 +75,22 @@ Get the names of the observables in a Markov chain.
 """
 observable_names(mc::MarkovChain) = map(observable_name, mc.obs)
 
-function annealing_chains(job::AnnealingJob)
-    cm = cell_map(job.storage, job.cellmap)
-    gauge = gauge_map(job.storage, job.cellmap)
-
-    return map(job.tasks) do task::AnnealingTask
-        rng = Xoshiro(task.seed)
-        spins = rand_spins(rng, nspins(cm))
-        field = task.field
-
-        MarkovChain(;
-            rng,
-            uuid = task.uuid,
-            cm, gauge,
-            state = State(
-                spins,
-                temp = first(job.temperature),
-                energy = energy(cm, spins, field),
-                field,
-            ),
-            obs = (), # no observables for annealing
-        )
+function MarkovChain(task::AnnealingOptions)
+    rng = Xoshiro(task.seed)
+    uuid = task.uuid
+    cm = spin_map(task.storage, task.shape)
+    gauge = nothing_or(task.sample.gauge) do
+        gauge_map(task.storage, task.shape)
     end
-end
-
-"""
-    $(SIGNATURES)
-
-Create a new Markov chain from a task.
-
-### Arguments
-
-- `task::TaskInfo`: The task to create the Markov chain from.
-
-### Keyword Arguments
-
-- `rng::AbstractRNG = Xoshiro(task.seed)`: The random number generator to use.
-- `uuid::UUID = isnothing(task.uuid) ? uuid1() : task.uuid`: The UUID of the Markov chain.
-- `cm::CellMap = cell_map(task.shape, (2, 3))`: The cell map to use.
-- `gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (1, 2)) : nothing`: The gauge cell map to use.
-- `spins::BitVector = rand_spins(rng, nspins(cm))`: The initial spins to use.
-"""
-function MarkovChain(
-        task::TaskInfo;
-        rng::AbstractRNG = Xoshiro(task.seed),
-        uuid::UUID = isnothing(task.uuid) ? uuid1() : task.uuid,
-        cm::CellMap = cell_map(task.shape, (task.shape.p-1, task.shape.p)),
-        gauge::Maybe{CellMap} = task.sample.gauge ? cell_map(task.shape, (task.shape.p-2, task.shape.p-1)) : nothing,
-        spins::BitVector = rand_spins(rng, nspins(cm)),
-        field = first(fields(task)),
-        temp = task.temperature.start,
-        obs = ntuple(length(task.sample.observables)) do i
-            Observable(task.sample.observables[i])
-        end,
-    )
-
+    spins = rand_spins(rng, nspins(cm))
+    field = first(task.fields)
+    temp = first(task.temperatures)
     state = State(;
-        spins,
-        field,
-        temp,
-        energy = energy(cm, spins, field),
+        spins, field, temp,
+        energy = energy(cm, spins, field)
     )
-
-    return MarkovChain(
-        rng,
-        uuid,
-        cm,
-        gauge,
-        state,
-        obs,
-    )
+    obs = ()
+    return MarkovChain(rng, uuid, cm, gauge, state, obs)
 end
 
 function Base.show(io::IO, mime::MIME"text/plain", mc::MarkovChain)

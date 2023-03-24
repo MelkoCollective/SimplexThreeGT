@@ -1,6 +1,6 @@
 using TerminalLoggers: TerminalLogger
 using Logging: with_logger
-using .Jobs: log_dir
+using .Jobs: StorageInfo, log_dir
 
 function with_path_log(f, path::String, name::String)
     ispath(path) || mkpath(path)

@@ -6,7 +6,7 @@ using Serialization: deserialize, serialize
 using Combinatorics: combinations
 using ..SimplexThreeGT: with_log
 
-export CellMap, nspins, cell_map, gauge_map
+export CellMap, nspins, cell_map, spin_map, gauge_map
 
 include("cells.jl")
 include("cellmap.jl")
