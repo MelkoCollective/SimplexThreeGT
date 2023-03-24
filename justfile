@@ -16,6 +16,11 @@ sync ndims size:
     rsync -avzcP $REMOTE/$NAME/resample data/$NAME/
     rsync -avzcP $REMOTE/$NAME/resample_images data/$NAME/
 
+sync-test:
+    #!/usr/bin/env bash
+    REMOTE=graham:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
+    rsync -avzcP $REMOTE/test data/
+
 pluto:
     julia --project -e 'using Pluto; Pluto.run()'
 
