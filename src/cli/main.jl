@@ -54,3 +54,20 @@ run cellmap task.
     Homology.cell_map(task)
     return
 end
+
+"""
+clean up the temporary files and logs.
+
+# Options
+
+- `--path <path>`: the path to the storage.
+- `--tags <tags>`: the tags of the storage
+"""
+@cast function clean(; path::String="data", tags::String="")
+    storage = StorageInfo(path, tags)
+    @info "clean up" storage
+    rm(Jobs.image_dir(storage, "temp"), recursive=true, force=true)
+    rm(Jobs.checkpoint_dir(storage, "temp"), recursive=true, force=true)
+    rm(Jobs.log_dir(storage), recursive=true, force=true)
+    return
+end
