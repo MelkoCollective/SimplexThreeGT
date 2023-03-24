@@ -39,6 +39,7 @@ function postprocess(info::StorageInfo, uuid::String)
         AnnealingJob,
         Jobs.image_dir(info, "annealing", "$(uuid).toml")
     )
+    @info "Crunching $(uuid)" job
     df = crunch(job.storage, uuid)
     specific_heat!(df, job.shape)
     df = error_analysis(df)
