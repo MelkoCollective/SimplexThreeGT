@@ -5,10 +5,18 @@ tau(bin)
 
 using SimplexThreeGT.Jobs
 using SimplexThreeGT.PostProcess
+using SimplexThreeGT.PostProcess: binning_transform, specific_heat!
 using DataFrames
+using Configurations
 
+uuid = "a75057ea-ca1b-11ed-1e48-9f9dc5de9bc0"
 info = StorageInfo("data", "test")
-df = PostProcess.crunch(info, "999788de-ca03-11ed-2e81-1fe12183772a")
+job = from_toml(
+    AnnealingJob,
+    Jobs.image_dir(info, "annealing", "$(uuid).toml")
+)
+df = PostProcess.crunch(info, uuid)
+specific_heat!(df, job.shape)
 gdf = groupby(df, [:field, :temp])
 
 function binning(name, x)
@@ -17,9 +25,10 @@ function binning(name, x)
 end
 
 binning(name) = x->binning(name, x)
+PostProcess.binning(gdf[end].Cv)
+combine(gdf, binning_transform(Symbol("Cv")))
 
-combine(gdf, :E => binning("E") => [:mean, :std, :tau])
-
+binning("E")(gdf[end].E)
 binning("E")(gdf[1].E)
 
 @less mean(LogBinner(gdf[1].E))
