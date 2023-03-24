@@ -228,8 +228,8 @@ function emit_slurm!(ctx::EmitContext, job::ResampleJob)
 end
 
 function sbatch(path::String)::String
-    println("sbatch $path")
-    return string(rand(Int))
-    # out = readchomp(`sbatch $path`)
-    # return match(r"Submitted batch job (\d+)", out).captures[1]
+    # println("sbatch $path")
+    # return string(rand(Int))
+    out = readchomp(`sbatch $path`)
+    return match(r"Submitted batch job (\d+)", out).captures[1]
 end
