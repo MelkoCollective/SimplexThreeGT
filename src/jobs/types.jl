@@ -161,26 +161,6 @@ export AnnealingOptions
     fields::FieldList
 end
 
-export ResampleMatrix
-@option struct ResampleMatrix
-    fields::Vector{Float64}
-    temperatures::Vector{Float64}
-    function ResampleMatrix(fields, temperatures)
-        length(fields) == length(temperatures) ||
-            throw(ArgumentError("fields and temperatures must have the same length"))
-        new(fields, temperatures)
-    end
-end
-
-Base.length(r::ResampleMatrix) = length(r.fields)
-function Base.iterate(r::ResampleMatrix, state::Int = 1)
-    state > length(r) && return nothing
-    return (r.fields[state], r.temperatures[state]), state + 1
-end
-Base.eltype(::ResampleMatrix) = Tuple{Float64, Float64}
-Base.getindex(r::ResampleMatrix, i::Int) = (r.fields[i], r.temperatures[i])
-Base.in(x::Tuple{Float64, Float64}, r::ResampleMatrix) = x in zip(r.fields, r.temperatures)
-
 export ResampleOptions
 @option struct ResampleOptions <: SimulationTask
     seed::UInt # global seed to generate each resample chain
@@ -190,5 +170,6 @@ export ResampleOptions
     storage::StorageInfo
     sample::ResampleInfo
 
-    matrix::ResampleMatrix
+    fields::TOMLRange
+    temperatures::TOMLRange
 end

@@ -71,6 +71,6 @@ function read_checkpoint_raw(task::ResampleOptions)
     file = checkpoint_file(task)
     isfile(file) || error("checkpoint file not found")
     return open(file, "r") do f
-        Checkpoint.find(f; task.matrix)
+        Checkpoint.find(f; fields=task.fields, temps=task.temperatures)
     end
 end

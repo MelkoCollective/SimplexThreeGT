@@ -22,13 +22,13 @@ end
 
 function binning(x)
     bin = LogBinner(x)
-    return [(mean(bin), std_error(bin), tau(bin))]
+    return [(mean(bin), std_error(bin), tau(bin), count(bin))]
 end
 
 function error_analysis(df::DataFrame)
     transforms = []
     for ob in filter(p -> !(p in (:field, :temp)), propertynames(df))
-        cols = [string(ob, "(", type, ")") for type in ("mean", "std", "tau")]
+        cols = [string(ob, "(", type, ")") for type in ("mean", "std", "tau", "count")]
         push!(transforms, ob => binning => cols)
     end
     return combine(groupby(df, [:field, :temp]), transforms...)

@@ -1,5 +1,6 @@
 module Checkpoint
 
+using ..Jobs
 using DocStringExtensions
 
 """
@@ -99,11 +100,11 @@ end
 
 Find rows in a file. `matrix` is an iterator of `(field, temp)` pairs.
 """
-function find(io::IO; matrix)
+function find(io::IO; fields, temps)
     results = Row[]
     while !eof(io)
         row = read(io, Row)
-        if (row.field, row.temp) in matrix
+        if row.field in fields && row.temp in temps
             push!(results, row)
         end
     end

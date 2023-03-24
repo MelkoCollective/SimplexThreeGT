@@ -70,35 +70,82 @@ function emit_task!(ctx::EmitContext, job::AnnealingJob)
         file = guarantee_dir(temp_dir(job, "annealing"), "$idx.toml")
         to_toml(file, option)
     end
+    return ctx
+end
+
+function div_loop_size(size::Int, njobs::Int)
+    n, r = divrem(size, njobs)
+    return (n + (i ≤ r ? 1 : 0) for i in 1:njobs)
+end
+
+function div_loop_stop(size::Int, njobs::Int)
+    cumsum(div_loop_size(size, njobs))
+end
+
+function div_loop_start(size::Int, njobs::Int)
+    starts = Int[1]; ptr = 1
+    for n in div_loop_size(size, njobs)
+        push!(starts, ptr += n)
+    end
+    pop!(starts)
+    return starts
+end
+
+function div_loop(size::Int, njobs::Int)
+    map(div_loop_start(size, njobs), div_loop_stop(size, njobs)) do start, stop
+        start:stop
+    end
+end
+
+function div_job(ntemps::Int, nfields::Int, nrepeat::Int, njobs::Int)
+    if nrepeat ≥ njobs
+        map(div_loop_size(nrepeat, njobs)) do task_nrepeat
+            (nrepeat=task_nrepeat, fields=1:nfields, temp=1:ntemps)
+        end
+    else
+        tasks = []
+        for njobs_per_field in div_loop_size(njobs, nrepeat)
+            if nfields ≥ njobs_per_field
+                for fields in div_loop(nfields, njobs_per_field)
+                    push!(tasks, (nrepeat=1, fields=fields, temp=1:ntemps))
+                end
+            else
+                for (field_idx, njobs_per_temp) in enumerate(div_loop_size(njobs_per_field, nfields))
+                    for task_temps in div_loop(ntemps, njobs_per_temp)
+                        push!(tasks, (nrepeat=1, fields=field_idx:field_idx, temp=task_temps))
+                    end
+                end
+            end
+        end
+        return tasks
+    end
 end
 
 function emit_task!(ctx::EmitContext, job::ResampleJob)
     to_toml(image_dir(job, "$(job.uuid).toml"), job)
-    per_job = (length(job.fields) * length(job.temperatures)) ÷ job.njobs + 1
-    job_itr = Iterators.partition(Iterators.product(job.temperatures, job.fields), per_job)
-    ctx.n_resample_jobs = length(job_itr)
-    for (job_idx, partition) in enumerate(job_itr)
-        fields = Float64[]; temps = Float64[]
-        for (temp, field) in partition
-            push!(fields, field)
-            push!(temps, temp)
-        end
-
+    task_itr = div_job(job.sample.nrepeat, length(job.fields), length(job.temperatures), job.njobs)
+    ctx.n_resample_jobs = length(task_itr)
+    for (task_id, task) in enumerate(task_itr)
         option = ResampleOptions(;
             seed = UInt(rand(UInt16)),
             uuid = uuid1(),
             parent = job.parent,
             shape = job.shape,
             storage = job.storage,
-            sample = job.sample,
-            matrix = ResampleMatrix(;
-                temperatures = temps,
-                fields = fields,
+            sample = ResampleInfo(;
+                nrepeat = task.nrepeat,
+                job.sample.nthrows,
+                job.sample.nsamples,
+                job.sample.option,
+                job.sample.observables,
             ),
+            temperatures = job.temperatures[task.temp],
+            fields = job.fields[task.fields],
         )
-        file = guarantee_dir(temp_dir(job, "resample"), "$job_idx.toml")
+        file = guarantee_dir(temp_dir(job, "resample"), "$task_id.toml")
         to_toml(file, option)
     end
+    return ctx
 end
 
 ###### Slurm ######
