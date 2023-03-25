@@ -209,13 +209,18 @@ function (opt::SlurmOptions)(name::String, cmds::Vector{String};
     return join(lines, '\n') * '\n'
 end
 
+function storage_flags(info::StorageInfo)
+    options = ["--path", info.path]
+    isempty(info.tags) && return options
+    return push!(options, "--tags", join(info.tags, ','))
+end
+
 function emit_slurm!(ctx::EmitContext, job::AnnealingJob)
     option = SlurmOptions(;job.storage, time=job.walltime)
 
     slurm_script = option("cm-" * name(job.shape), [
         "cellmap",
-        "--path", job.storage.path,
-        "--tags", join(job.storage.tags, ','),
+        storage_flags(job.storage)...,
         "--job", string(job.uuid),
     ])
     slurm_script_path = guarantee_dir(temp_dir(job, "slurm"), "cellmap.sh")
@@ -224,8 +229,7 @@ function emit_slurm!(ctx::EmitContext, job::AnnealingJob)
 
     slurm_script = option("an-" * name(job.shape), [
             "annealing",
-            "--path", job.storage.path,
-            "--tags", join(job.storage.tags, ','),
+            storage_flags(job.storage)...,
             "--job", string(job.uuid),
             "--task", "\$SLURM_ARRAY_TASK_ID",
         ]; deps=[job_id], njobs=ctx.n_annealing_jobs,
@@ -259,8 +263,7 @@ function emit_slurm_crunch_checkpoint!(ctx::EmitContext, job::AnnealingJob)
     option = SlurmOptions(;job.storage, time)
     slurm_script = option("crunch-checkpoint", [
             "crunch", "checkpoint",
-            "--path", job.storage.path,
-            "--tags", join(job.storage.tags, ','),
+            storage_flags(job.storage)...,
             "--job", string(job.uuid),
         ]; deps=[ctx.annealing_job_id],
     )
@@ -282,8 +285,7 @@ function emit_slurm!(ctx::EmitContext, job::ResampleJob)
     deps = isempty(ctx.checkpoint_crunch_job_id) ? String[] : [ctx.checkpoint_crunch_job_id]
     slurm_script = option("rs-" * name(job.shape), [
             "resample",
-            "--path", job.storage.path,
-            "--tags", join(job.storage.tags, ','),
+            storage_flags(job.storage)...,
             "--job", "$(job.parent)", # lead us to crunched checkpoints
             "--task", "\$SLURM_ARRAY_TASK_ID"
         ]; deps, njobs=ctx.n_resample_jobs,
