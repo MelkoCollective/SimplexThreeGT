@@ -46,10 +46,8 @@ watch path:
         end
 
         if line == "done"
-            println(done)
+            println('\n', done)
             return
-        else
-            print(line)
         end
 
         while true
