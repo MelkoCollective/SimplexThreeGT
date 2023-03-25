@@ -65,7 +65,7 @@ function CellMap(
     p1p2 = Dict{Int, Set{Int}}()
     p2p1 = Dict{Int, Set{Int}}()
     @withprogress name="generate cell map" begin
-        for p2_cell in p2_points
+        for (p2_idx, p2_cell) in enumerate(p2_points)
             p2_id = p2_labels[p2_cell]
             for p1_topo in topo.sets[p1+1]
                 p1_cell = p2_cell[p1_topo]
@@ -73,13 +73,13 @@ function CellMap(
                 push!(get!(Set{Int}, p1p2, p1_id), p2_id)
                 push!(get!(Set{Int}, p2p1, p2_id), p1_id)
             end
-            @logprogress 1/length(p2_points)
+            @logprogress p2_idx/length(p2_points)
         end
     end # withprogress
     return CellMap(ndims, L, (p1, p2), p1p2, p2p1)
 end
 
-nspins(cm::CellMap) = length(cm.p1p2)
+Jobs.nspins(cm::CellMap) = length(cm.p1p2)
 face_cube_map(n::Int, L::Int) = cell_map(n, L, (2, 3))
 
 """
@@ -95,14 +95,29 @@ already exist. See also [`CellMap`](@ref).
 - `p1`: dimension of the `p1`-cells
 - `p2`: dimension of the `p2`-cells
 """
-function cell_map(shape::ShapeInfo, p::Tuple{Int, Int})
-    name = shape_name(shape) * "-$(p[1])-$(p[2])"
-    cache = shape_dir(shape, name * ".jls")
+function cell_map(storage::StorageInfo, shape::ShapeInfo, p::Tuple{Int, Int})
+    name = Jobs.name(shape) * "-$(p[1])-$(p[2])"
+    cache = topo_dir(storage, name * ".jls")
     isfile(cache) && return deserialize(cache)
-    with_shape_log(shape, name) do
+    with_log(storage, name) do
         cm = CellMap(shape.ndims, shape.size, p)
         @debug "serializing cm to $cache"
         serialize(cache, cm)
         return cm
     end
+end
+
+function spin_map(storage::StorageInfo, shape::ShapeInfo)
+    cell_map(storage, shape, (shape.p-1, shape.p))
+end
+
+function gauge_map(storage::StorageInfo, shape::ShapeInfo)
+    cell_map(storage, shape, (shape.p-2, shape.p-1))
+end
+
+function cell_map(job::CellMapOptions)
+    spin_map(job.storage, job.shape)
+    job.gauge || return
+    gauge_map(job.storage, job.shape)
+    return
 end

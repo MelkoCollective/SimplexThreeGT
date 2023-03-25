@@ -6,13 +6,13 @@ function write_checkpoint(io::IO, mc::MarkovChain)
     return
 end
 
-function checkpoint(f, mc::MarkovChain, task::TaskInfo)
-    path = task_dir(task, "checkpoints")
-    ispath(path) || mkpath(path)
-    checkpoint_file = task_dir(task, "checkpoints", "$(mc.uuid).checkpoint")
-    return open(checkpoint_file, "a+") do io
+function checkpoint(f, mc::MarkovChain, task::AnnealingOptions)
+    return open(checkpoint_file(task), "a+") do io
         function agent()
-            write_checkpoint(io, mc)
+            if mc.state.field in task.checkpoint.fields &&
+                mc.state.temp in task.checkpoint.temperatures
+                write_checkpoint(io, mc)
+            end
         end
         f(agent)
     end
@@ -39,41 +39,41 @@ function record(f, data_file::String)
     end
 end
 
-function save_task_image(task::TaskInfo, uuid::UUID, tag::String="task")
-    let path = task_dir(task, "$(tag)_images")
-        ispath(path) || mkpath(path)
+function read_checkpoint(task::ResampleOptions)
+    cm = spin_map(task.storage, task.shape)
+    gauge = nothing_or(task.sample.option.gauge) do
+        gauge_map(task.storage, task.shape)
     end
-    to_toml(task_dir(task, "$(tag)_images", "$(uuid).toml"), task)
-end
+    rng = Xoshiro(task.seed)
 
-function read_checkpoint(task::TaskInfo, seed=task.seed)
-    cm = cell_map(task.shape, (task.shape.ndims-1, task.shape.ndims))
-    # create MarkovChain for each temperature
-    rng = Xoshiro(seed)
+    # create a seperate chain for each selected
+    # row in the checkpoint file
     return map(read_checkpoint_raw(task)) do row
-        MarkovChain(task;
-            # give each MarkovChain a different rng
-            # so they can run in parallel
-            rng=Xoshiro(rand(rng, UInt)),
+        # each chain has the same uuid so we can write
+        # to the same sample file
+        MarkovChain(;
+            rng = Xoshiro(rand(rng, UInt)),
+            uuid = task.uuid,
             cm,
-            # uuid should be different for each MarkovChain
-            # so there is no race condition when running
-            # multiple MarkovChain in parallel
-            uuid=uuid1(),
-            row.spins,
-            row.temp,
-            row.field,
+            gauge,
+            state = State(;
+                row.spins,
+                row.temp,
+                row.field,
+                energy = energy(cm, row.spins, row.field),
+            ),
+            obs = ntuple(length(task.sample.observables)) do i
+                name = task.sample.observables[i]
+                Observable(name)
+            end,
         )
-    end
+    end # map
 end
 
-function read_checkpoint_raw(task::TaskInfo)
-    isnothing(task.uuid) && error("expect a task uuid of preivous run")
-    checkpoints_dir = task_dir(task, "checkpoints")
-    ispath(checkpoints_dir) || error("no checkpoint file found")
-    checkpoint_file = task_dir(task, "checkpoints", "$(task.uuid).checkpoint")
-    isfile(checkpoint_file) || error("checkpoint file not found")
-    return open(task_dir(task, "checkpoints", checkpoint_file), "r") do f
-        Checkpoint.find(f; fields=fields(task), temps=temperatures(task))
+function read_checkpoint_raw(task::ResampleOptions)
+    file = checkpoint_file(task)
+    isfile(file) || error("checkpoint file not found")
+    return open(file, "r") do f
+        Checkpoint.find(f; fields=task.fields, temps=task.temperatures)
     end
 end

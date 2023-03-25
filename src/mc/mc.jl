@@ -6,14 +6,16 @@ using Random: AbstractRNG, Xoshiro
 using Configurations: Maybe, to_toml
 using Serialization: serialize, deserialize
 using UUIDs: UUID, uuid1
-using ProgressLogging: @progress
-using ..Homology: CellMap, nspins, cell_map
-using ..Spec: TaskInfo, ShapeInfo, SamplingInfo, Schedule, temperatures, fields, task_dir, guarantee_dir
+using ProgressLogging: @progress, @withprogress, @logprogress
+using Distributed
+using Printf
+using ..Homology: CellMap, nspins, spin_map, gauge_map
+using ..Jobs
 using ..Checkpoint: Checkpoint, Row
-using ..SimplexThreeGT: with_path_log
+using ..SimplexThreeGT: with_log
 
-function with_task_log(f, task::TaskInfo, name::String)
-    with_path_log(f, task_dir(task, "logs"), name)
+function nothing_or(f, x)
+    isnothing(x) ? nothing : f(x)
 end
 
 include("spins.jl")

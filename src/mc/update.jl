@@ -18,9 +18,13 @@ end
 energy_diff!(mc::MarkovChain, face::Int) = energy_diff!(mc.state.spins, mc.cm, face, mc.state.field)
 
 function metropolis_accept!(mc::MarkovChain, delta_E)
-    delta_E ≤ 0 && return true
-    exp(-delta_E/mc.state.temp) > rand(mc.rng) && return true
-    return false
+    mc.state.nsteps += 1
+    if delta_E ≤ 0 || exp(-delta_E/mc.state.temp) > rand(mc.rng)
+        mc.state.accept += 1
+        return true
+    else
+        return false
+    end
 end
 
 function mcmc_step!(mc::MarkovChain)

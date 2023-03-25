@@ -1,5 +1,6 @@
 module Checkpoint
 
+using ..Jobs
 using DocStringExtensions
 
 """
@@ -19,6 +20,10 @@ Base.@kwdef struct Row
     spins::BitVector
 end # struct
 
+function Base.isequal(lhs::Row, rhs::Row)
+    return lhs.field == rhs.field && lhs.temp  == rhs.temp
+end
+
 """
     $(SIGNATURES)
 
@@ -29,6 +34,13 @@ function Base.write(io::IO, row::Row)
     write(io, row.temp)
     write(io, length(row.spins))
     write(io, row.spins.chunks)
+    return
+end
+
+function Base.write(io::IO, rows::Vector{Row})
+    for each in rows
+        write(io, each)
+    end
     return
 end
 
@@ -86,11 +98,10 @@ end
 """
     $(SIGNATURES)
 
-Find rows in a file.
+Find rows in a file. `matrix` is an iterator of `(field, temp)` pairs.
 """
-function find(io::IO; temps=Set(), fields=Set([0.0]))
+function find(io::IO; fields, temps)
     results = Row[]
-
     while !eof(io)
         row = read(io, Row)
         if row.field in fields && row.temp in temps

@@ -1,44 +1,44 @@
 """
-emit task toml files
+submit slurm jobs
 """
-@cast module Emit
+@cast module Submit
 
 using Comonicon
 using SimplexThreeGT.Jobs
 
 """
-emit annealing task toml files from job specification.
+submit annealing task to slurm.
 
 # Options
 
 - `--job <toml file>`: the job toml file.
 """
 @cast function annealing(;job::AnnealingJob)
-    Jobs.emit(job)
+    Jobs.submit(job)
     return
 end
 
 """
-emit resample task toml files from job specification.
+submit resample task to slurm.
 
 # Options
 
 - `--job <toml file>`: the job toml file.
 """
 @cast function resample(;job::ResampleJob)
-    Jobs.emit(job)
+    Jobs.submit(job)
     return
 end
 
 """
-emit annealing and resample task toml files from job specification.
+submit annealing and resample task to slurm.
 
 # Options
 
 - `--job <toml file>`: the job toml file.
 """
 @cast function simu(;job::SimulationJob)
-    Jobs.emit(job)
+    Jobs.submit(job)
     return
 end
 
