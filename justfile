@@ -33,12 +33,16 @@ clean:
     rm logs/*
 
 watch path:
-    #!/usr/bin/env julia --compile=min --
+    #!/usr/bin/env julia
     open("{{path}}") do io
         local line
         while !eof(io)
             line = readline(io)
-            "ETA" in line || println(line)
+            if occursin("ETA", line)
+                println(line)
+            else
+                print('\r', line)
+            end
         end
 
         if line == "done"
