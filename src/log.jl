@@ -7,6 +7,7 @@ function with_path_log(f, path::String, name::String)
     log_file = joinpath(path, "$name.log")
     return open(log_file, "w") do io
         with_logger(f, TerminalLogger(io; always_flush=true))
+        println(io, "done")
     end
 end
 

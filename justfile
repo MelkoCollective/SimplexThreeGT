@@ -29,3 +29,21 @@ clean:
     rm -rf scripts/task
     rm logs/*
 
+watch path:
+    #!/usr/bin/env julia --compile=min --
+    open(path) do io
+        seekend(io)
+        while true
+            try
+                if !eof(io)
+                    line = readline(io)
+                    line == "done" && break
+                    print('\r', line)
+                end
+                sleep(1e-3)
+            catch e
+                e isa InterruptException && break
+                rethrow(e)
+            end
+        end
+    end
