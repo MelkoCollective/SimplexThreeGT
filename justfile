@@ -39,9 +39,9 @@ watch path:
         while !eof(io)
             line = readline(io)
             if occursin("ETA", line)
-                println(line)
-            else
                 print('\r', line)
+            else
+                println(line)
             end
         end
 
