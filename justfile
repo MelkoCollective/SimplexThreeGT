@@ -44,6 +44,8 @@ watch path:
         if line == "done"
             println(done)
             return
+        else
+            print(line)
         end
 
         while true
