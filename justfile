@@ -35,12 +35,15 @@ clean:
 watch path:
     #!/usr/bin/env julia --compile=min --
     open("{{path}}") do io
-        last_line = readlines(io)[end]
-        if last_line == "done"
-            @info "done"
+        local line
+        while !eof(io)
+            line = readline(io)
+            "ETA" in line || println(line)
+        end
+
+        if line == "done"
+            println(done)
             return
-        else
-            print(last_line)
         end
 
         while true
