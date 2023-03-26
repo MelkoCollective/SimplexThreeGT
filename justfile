@@ -33,39 +33,4 @@ clean:
     rm logs/*
 
 watch path:
-    #!/usr/bin/env julia
-    try
-        open("{{path}}") do io
-            local line
-            while !eof(io)
-                line = readline(io)
-                if occursin("ETA", line)
-                    print('\r', line)
-                else
-                    println(line)
-                end
-            end
-
-            if line == "done"
-                println('\n', done)
-                return
-            end
-
-            while true
-                try
-                    if !eof(io)
-                        line = readline(io)
-                        line == "done" && break
-                        print('\r', line)
-                    end
-                    sleep(1e-3)
-                catch e
-                    e isa InterruptException && break
-                    rethrow(e)
-                end
-            end
-        end
-    catch e
-        e isa InterruptException && return
-        rethrow(e)
-    end
+    julia --project scripts/main.jl watch {{path}}
