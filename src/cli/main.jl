@@ -71,3 +71,52 @@ clean up the temporary files and logs.
     rm(Jobs.log_dir(storage), recursive=true, force=true)
     return
 end
+
+"""
+watch a log file.
+
+# Args
+
+- `path`: the path to the log file.
+
+# Options
+
+- `--ms <int>`: the interval in milliseconds.
+"""
+@cast function watch(path::String; ms::Int=5)
+    Base.exit_on_sigint(false)
+    try
+        open(path) do io
+            local line
+            while !eof(io)
+                line = readline(io)
+                if occursin("ETA", line)
+                    print('\r', line)
+                else
+                    println(line)
+                end
+            end
+
+            if line == "done"
+                println('\n', done)
+                return
+            end
+
+            while true
+                if !eof(io)
+                    line = readline(io)
+                    line == "done" && break
+                    print('\r', line)
+                end
+                sleep(ms / 1000)
+            end
+        end # open
+    catch e
+        if e isa InterruptException
+            println("\ninterrupted")
+            return
+        else
+            throw(Comonicon.cmd_error(string(e), 1))
+        end
+    end
+end
