@@ -10,6 +10,9 @@ submit type:
 slurm-status:
     squeue --format="%.18i %.9P %.30j %.8u %.8T %.10M %.9l %.6D %R" --me
 
+slurm-count:
+    squeue --format="%.18i %.9P %.30j %.8u %.8T %.10M %.9l %.6D %R" --me | wc -l
+
 sync ndims size:
     #!/usr/bin/env bash
     REMOTE=graham:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
