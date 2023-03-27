@@ -93,7 +93,7 @@ watch a log file.
                 line = readline(io)
                 max_width = max(max_width, length(line))
                 if occursin("ETA", line)
-                    print('\r', line)
+                    print('\r', line, ' '^(max_width - length(line)))
                 else
                     println(line)
                 end
