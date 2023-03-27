@@ -87,9 +87,11 @@ watch a log file.
     Base.exit_on_sigint(false)
     try
         open(path) do io
+            max_width = 0
             local line
             while !eof(io)
                 line = readline(io)
+                max_width = max(max_width, length(line))
                 if occursin("ETA", line)
                     print('\r', line)
                 else
@@ -106,7 +108,7 @@ watch a log file.
                 if !eof(io)
                     line = readline(io)
                     line == "done" && break
-                    print('\r', line)
+                    print('\r', line, ' '^(max_width - length(line)))
                 end
                 sleep(ms / 1000)
             end
