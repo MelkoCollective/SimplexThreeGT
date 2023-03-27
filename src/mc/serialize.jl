@@ -41,7 +41,7 @@ end
 
 function read_checkpoint(task::ResampleOptions)
     cm = spin_map(task.storage, task.shape)
-    gauge = nothing_or(task.sample.option.gauge) do
+    gauge = nothing_or(task.sample.option.gauge) do _
         gauge_map(task.storage, task.shape)
     end
     rng = Xoshiro(task.seed)

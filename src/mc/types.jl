@@ -80,7 +80,7 @@ function MarkovChain(task::AnnealingOptions)
     rng = Xoshiro(task.seed)
     uuid = task.uuid
     cm = spin_map(task.storage, task.shape)
-    gauge = nothing_or(task.sample.gauge) do
+    gauge = nothing_or(task.sample.gauge) do _
         gauge_map(task.storage, task.shape)
     end
     spins = rand_spins(rng, nspins(cm))

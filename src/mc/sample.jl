@@ -45,15 +45,18 @@ function annealing(task::AnnealingOptions)
         @info "annealing started" task
         checkpoint(chain, task) do checkpoint_agent
             @withprogress name="annealing" begin
-                n_fields = length(task.fields)
+                n_total = length(task.fields) * length(task.temperatures)
+                progress_idx = 0
                 for (idx, h) in enumerate(task.fields)
                     chain.state.field = h
                     for T in task.temperatures
                         chain.state.temp = T
                         burn!(chain, task.sample)
                         checkpoint_agent()
+
+                        progress_idx += 1
+                        @logprogress @sprintf("   h=%.2f", h) progress_idx/n_total
                     end
-                    @logprogress @sprintf("   h=%.2f", h) idx/n_fields
                 end
             end # @withprogress
         end # checkpoint
