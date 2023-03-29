@@ -13,14 +13,11 @@ slurm-status:
 slurm-count:
     squeue --format="%.18i %.9P %.30j %.8u %.8T %.10M %.9l %.6D %R" --me | wc -l
 
-sync ndims size:
+sync:
     #!/usr/bin/env bash
     REMOTE=graham:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
-    NAME=cm-{{ndims}}d-{{size}}L
-    rsync -avzcP $REMOTE/$NAME/task_images data/$NAME/
-    rsync -avzcP $REMOTE/$NAME/annealing data/$NAME/
-    rsync -avzcP $REMOTE/$NAME/resample data/$NAME/
-    rsync -avzcP $REMOTE/$NAME/resample_images data/$NAME/
+    rsync -avzcP $REMOTE/image data/
+    rsync -avzcP $REMOTE/crunch data/
 
 sync-test:
     #!/usr/bin/env bash
