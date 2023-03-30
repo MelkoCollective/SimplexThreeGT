@@ -20,13 +20,17 @@ function specific_heat!(df::DataFrame, shape::ShapeInfo)
     return specific_heat!(df, shape.ndims, shape.size)
 end
 
+function magnetic_susceptibility!(df::DataFrame, shape::ShapeInfo)
+    return magnetic_susceptibility!(df, shape.ndims, shape.size)
+end
+
 function specific_heat!(df::DataFrame, ndims::Int, L::Int)
 	nfaces = ndims * (ndims-1) / 2 * L^ndims
     df.Cv = (df.var"E^2" - df.E.^2) ./ (df.temp.^2) ./ nfaces
     return df
 end
 
-function megnetic_susceptibility!(df::DataFrame, ndims::Int, L::Int)
+function magnetic_susceptibility!(df::DataFrame, ndims::Int, L::Int)
     nfaces = ndims * (ndims-1) / 2 * L^ndims
     df.var"χ" = (df.var"M^2" - df.M.^2) ./ df.temp ./ nfaces
     return df
@@ -59,6 +63,9 @@ function postprocess(info::StorageInfo, uuid::String)
     @info "Crunching $(uuid)" job
     df = crunch(job.storage, uuid)
     specific_heat!(df, job.shape)
+    if hasproperty(df, "M") && hasproperty(df, "M^2")
+        megnetic_susceptibility!(df, job.shape)
+    end
     df = error_analysis(df)
     CSV.write(Jobs.crunch_dir(info, "$(uuid).csv"), df)
     return
