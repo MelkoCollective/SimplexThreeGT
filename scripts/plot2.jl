@@ -14,112 +14,118 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ c1bb5b70-c070-11ed-25a7-4ba77b0da3ed
+# ╔═╡ de9f08e2-ce67-11ed-3a88-838fff267690
 begin
 	using Pkg
-	Pkg.activate("..")
-	using SimplexThreeGT
-	using SimplexThreeGT.PostProcess
-	using DataFrames
-	using CSV
-	using Plots
+	Pkg.activate(Base.current_project())
+	using Plots, PlutoUI, DataFrames, CSV, LinearAlgebra
 end
 
-# ╔═╡ d898f113-5752-44a1-aa0d-5fc87499130a
-using PlutoUI
+# ╔═╡ c3279e72-838e-49b5-b3dd-c1dc7f301ece
+df = DataFrame(CSV.File("../data/crunch/c8ec6624-cace-11ed-0795-d1e27c39ff1f.csv"))
 
-# ╔═╡ 002f5bed-9f90-4344-9c84-dbd667d847a9
-data_dir = pkgdir(SimplexThreeGT, "data")
+# ╔═╡ d21e5512-632e-4ae1-8d42-cdb1f98311bb
+gdf = groupby(df, [:field])
 
-# ╔═╡ f108e52d-e658-4ccc-85a1-9210617d0009
-ndims=4
+# ╔═╡ 8a37f5bd-75b3-435e-9a17-615977321b33
+@bind h Slider(1:100)
 
-# ╔═╡ 7e936015-1518-4e21-ae9a-4c100fccaf4b
-L=4
+# ╔═╡ 85f64587-79aa-423a-809e-5dcd22d25837
+plot(
+	gdf[h]."temp", gdf[h]."Cv(mean)",
+	yerror=map(gdf[h]."Cv(std)") do x
+		isnan(x) ? 0.0 : x
+	end,
+	legend=nothing,
+	xlabel="temperature", ylabel="Cv(mean)",
+	title="h=$(gdf[h].field[1])"
+)
 
-# ╔═╡ 294558fa-b7a6-4253-a339-aefcd77c3ccb
-cm_file = "cm-$(ndims)d-$(L)L"
+# ╔═╡ 60019633-dc6f-4078-9601-c141df4b46c1
+plot(
+	gdf[h]."temp", gdf[h]."M(mean)",
+	yerror=map(gdf[h]."M(std)") do x
+		isnan(x) ? 0.0 : x
+	end,
+	legend=nothing,
+	xlabel="temperature", ylabel="M(mean)",
+	title="h=$(gdf[h].field[1])"
+)
 
-# ╔═╡ 75a4e2ea-9d55-42b2-aced-b19bf7af9e88
-uuids = readdir(joinpath(data_dir, cm_file, "annealing"))
+# ╔═╡ bb6c87a4-8d3c-462a-bef3-8f15c84281a0
+plot(
+	gdf[h]."temp", gdf[h]."accept_rate(mean)" .+ 1e-20,
+	legend=nothing,
+	xlabel="temperature", ylabel="accept_rate(mean)",
+	yaxis=:log,
+	title="h=$(gdf[h].field[1])"
+)
 
-# ╔═╡ 9d2e2cc6-b755-4c48-b0d2-152d9355f68a
-df = mapreduce(vcat, uuids) do file
-	DataFrame(CSV.File(joinpath(data_dir, cm_file, "annealing", file)))
-end
+# ╔═╡ 6175d2f3-2a41-4d8c-afaa-d3836e986e41
+maximum(gdf[77]."Cv(std)")
 
-# ╔═╡ 6c200417-28e1-42ad-9b21-efb598a1fff3
-PostProcess.specific_heat!(df, ndims, L)
+# ╔═╡ 6048db65-70b9-4936-954a-87b2db57e5b1
+maximum(gdf[77]."Cv(mean)")
 
-# ╔═╡ ba44f420-fbd3-4eaf-aed9-ab3457f726e2
-groups = groupby(df, [:field, :temp], sort=true)
+# ╔═╡ d7157f73-a8b5-43bf-b888-ed4fc20d50ed
+maximum(gdf[57]."Cv(tau)")
 
-# ╔═╡ b424881a-8bf8-4173-937f-9e571cdd855f
-fields = 0.0:0.01:1.0
+# ╔═╡ 9e3a937b-fb32-45da-8a74-c4dc0e76f4bd
+maximum(gdf[57]."Cv(count)")
 
-# ╔═╡ 5f59b060-642c-4fb0-8e66-cd8cd813f6fd
-temps = 0.1:0.01:50.0
+# ╔═╡ 79921671-272f-4a50-a5e7-0b05d236689f
+hs = [df.field[1] for df in gdf]
 
-# ╔═╡ 2b435077-a1e2-470e-bb31-1c141b945b41
-Cv = let Cv = zeros(length(fields), length(temps))
-	for group in groups
-		i = searchsortedfirst(fields, group.field[1])
-		j = searchsortedfirst(temps, group.temp[1])
-		Cv[i, j] = group.Cv[1]
+# ╔═╡ a8b551b8-d365-48fe-84ac-291ea7962387
+Ts = sort(gdf[1].temp)
+
+# ╔═╡ 0b64e65b-0e17-4d58-9a18-935d72a2bdfb
+Cv = let
+	ret = zeros(length(gdf[1].temp), length(gdf))
+	for (h_idx, df) in enumerate(gdf), (T_idx, T) in enumerate(df.temp)
+		ret[end - T_idx + 1, h_idx] = df."Cv(mean)"[T_idx] / maximum(df."Cv(mean)")
 	end
-	Cv
+	ret
 end
 
-# ╔═╡ 06fe524f-b161-40cc-8e79-5933cbf5a836
-heatmap(fields,
-    temps[1:120], Cv[:, 1:120],
-    c=cgrad([:blue, :white,:red, :yellow]),
-    xlabel="fields", ylabel="temps",
-    title="Cv")
+# ╔═╡ 051415ce-30b6-4fdd-b335-ee371320147b
+heatmap(hs, Ts, Cv; xlabel="h", ylabel="T")
 
-# ╔═╡ 0eb561f3-24e3-4bc0-b85d-c403b5b91b7c
-Cv[:, 1:200]
+# ╔═╡ 779aa539-e30e-4736-a1e1-c2a487cd09da
+maximum(Ts)
 
-# ╔═╡ 432df020-eb30-49a8-9eb5-64f939f58fe1
-temps[1:300]
+# ╔═╡ e8395949-5f7b-40f9-bb70-2c2719489b79
+plot(Cv[:, 1])
 
-# ╔═╡ 27f2ce4e-e265-4cb2-866d-6a2a36990fca
-field_groups = groupby(df, [:field, ], sort=true)
+# ╔═╡ fb067387-529d-4849-8d4f-da4943f0c939
+M = let
+	ret = zeros(length(gdf[1].temp), length(gdf))
+	for (h_idx, df) in enumerate(gdf), (T_idx, T) in enumerate(df.temp)
+		ret[end - T_idx + 1, h_idx] = df."M(mean)"[T_idx] / maximum(df."M(mean)")
+	end
+	ret
+end
 
-# ╔═╡ d1fe6607-ea40-4a8d-8136-18a9d65c4be6
-md"""
-h = $(@bind h Slider(1:length(field_groups), show_value=true))
-start = $(@bind start Slider(1:5000, show_value=true))
-"""
-
-# ╔═╡ 67c2c669-59e5-4dc5-a709-3af45273a409
-plot(field_groups[h].temp[start:end], field_groups[h].M[start:end], title="h=$(field_groups[h].field[1])")
-
-# ╔═╡ 7bbd835c-731a-482d-863b-0a4970b345c8
-plot(field_groups[h].temp[start:end], field_groups[h].Cv[start:end], title="h=$(field_groups[h].field[1])")
-
-# ╔═╡ d1de043f-409d-4975-9b2e-152ca24562db
-
+# ╔═╡ 18237a59-3057-4a72-9dbe-c22fcc26b568
+heatmap(hs, Ts, M; xlabel="h", ylabel="T")
 
 # ╔═╡ Cell order:
-# ╠═c1bb5b70-c070-11ed-25a7-4ba77b0da3ed
-# ╠═002f5bed-9f90-4344-9c84-dbd667d847a9
-# ╠═f108e52d-e658-4ccc-85a1-9210617d0009
-# ╠═7e936015-1518-4e21-ae9a-4c100fccaf4b
-# ╠═294558fa-b7a6-4253-a339-aefcd77c3ccb
-# ╠═75a4e2ea-9d55-42b2-aced-b19bf7af9e88
-# ╠═9d2e2cc6-b755-4c48-b0d2-152d9355f68a
-# ╠═6c200417-28e1-42ad-9b21-efb598a1fff3
-# ╠═ba44f420-fbd3-4eaf-aed9-ab3457f726e2
-# ╠═b424881a-8bf8-4173-937f-9e571cdd855f
-# ╠═5f59b060-642c-4fb0-8e66-cd8cd813f6fd
-# ╠═2b435077-a1e2-470e-bb31-1c141b945b41
-# ╠═06fe524f-b161-40cc-8e79-5933cbf5a836
-# ╠═0eb561f3-24e3-4bc0-b85d-c403b5b91b7c
-# ╠═432df020-eb30-49a8-9eb5-64f939f58fe1
-# ╟─27f2ce4e-e265-4cb2-866d-6a2a36990fca
-# ╠═d898f113-5752-44a1-aa0d-5fc87499130a
-# ╠═d1fe6607-ea40-4a8d-8136-18a9d65c4be6
-# ╠═67c2c669-59e5-4dc5-a709-3af45273a409
-# ╠═7bbd835c-731a-482d-863b-0a4970b345c8
-# ╠═d1de043f-409d-4975-9b2e-152ca24562db
+# ╠═de9f08e2-ce67-11ed-3a88-838fff267690
+# ╠═c3279e72-838e-49b5-b3dd-c1dc7f301ece
+# ╠═d21e5512-632e-4ae1-8d42-cdb1f98311bb
+# ╠═8a37f5bd-75b3-435e-9a17-615977321b33
+# ╠═85f64587-79aa-423a-809e-5dcd22d25837
+# ╠═60019633-dc6f-4078-9601-c141df4b46c1
+# ╠═bb6c87a4-8d3c-462a-bef3-8f15c84281a0
+# ╠═6175d2f3-2a41-4d8c-afaa-d3836e986e41
+# ╠═6048db65-70b9-4936-954a-87b2db57e5b1
+# ╠═d7157f73-a8b5-43bf-b888-ed4fc20d50ed
+# ╠═9e3a937b-fb32-45da-8a74-c4dc0e76f4bd
+# ╠═79921671-272f-4a50-a5e7-0b05d236689f
+# ╠═a8b551b8-d365-48fe-84ac-291ea7962387
+# ╠═0b64e65b-0e17-4d58-9a18-935d72a2bdfb
+# ╠═051415ce-30b6-4fdd-b335-ee371320147b
+# ╠═779aa539-e30e-4736-a1e1-c2a487cd09da
+# ╠═e8395949-5f7b-40f9-bb70-2c2719489b79
+# ╠═fb067387-529d-4849-8d4f-da4943f0c939
+# ╠═18237a59-3057-4a72-9dbe-c22fcc26b568

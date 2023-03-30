@@ -15,17 +15,17 @@ slurm-count:
 
 sync:
     #!/usr/bin/env bash
-    REMOTE=graham:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
+    REMOTE=compute-canada:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
     rsync -avzcP $REMOTE/image data/
     rsync -avzcP $REMOTE/crunch data/
 
 sync-test:
     #!/usr/bin/env bash
-    REMOTE=graham:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
+    REMOTE=compute-canada:/home/rogerluo/projects/def-rgmelko/rogerluo/SimplexThreeGT/data
     rsync -avzcP $REMOTE/test data/
 
 pluto:
-    julia --project -e 'using Pluto; Pluto.run()'
+    julia --project=scripts -e 'using Pluto; Pluto.run()'
 
 clean:
     rm -rf scripts/slurm

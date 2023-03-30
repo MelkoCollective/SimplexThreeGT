@@ -26,6 +26,12 @@ function specific_heat!(df::DataFrame, ndims::Int, L::Int)
     return df
 end
 
+function megnetic_susceptibility!(df::DataFrame, ndims::Int, L::Int)
+    nfaces = ndims * (ndims-1) / 2 * L^ndims
+    df.var"χ" = (df.var"M^2" - df.M.^2) ./ df.temp ./ nfaces
+    return df
+end
+
 function binning(x)
     bin = LogBinner(eltype(x))
     append!(bin, x)
