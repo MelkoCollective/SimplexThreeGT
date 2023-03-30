@@ -14,13 +14,12 @@ tags = []
 [sample]
 nrepeat = 200
 nsamples = 500_000
-nthrows = 10
+nthrows = 1
 observables = ["E", "E^2", "M", "M^2", "accept_rate"]
 
     [sample.option]
     nburns = 5000
-    order = "random"
-    gauge.steps = 10
+    order = "typewriter"
 
 [fields]
 start = 0.0
