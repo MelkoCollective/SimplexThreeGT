@@ -64,7 +64,7 @@ function postprocess(info::StorageInfo, uuid::String)
     df = crunch(job.storage, uuid)
     specific_heat!(df, job.shape)
     if hasproperty(df, "M") && hasproperty(df, "M^2")
-        megnetic_susceptibility!(df, job.shape)
+        magnetic_susceptibility!(df, job.shape)
     end
     df = error_analysis(df)
     CSV.write(Jobs.crunch_dir(info, "$(uuid).csv"), df)
