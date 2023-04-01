@@ -264,6 +264,8 @@ function Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
         Enew += -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
     end
 
+    println("Need H field in Gauge Flip")
+
     return Enew - Eold
 
 end #Gague_Star_Flip
@@ -346,6 +348,15 @@ function main()
     
         E_avg = 0.
         E2 = 0.
+        M_avg = 0.
+        M2 = 0.
+
+        Mag = 0
+        for s in Spin
+            Mag += s
+        end
+        #@show(Mag)
+
         num_MCS = 10000
         for i = 1:num_MCS
            #---- Single Spin Flip
@@ -354,6 +365,7 @@ function main()
                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube,H) #flips spin
                 if MetropolisAccept(DeltaE,T,rng) == true 
                     Energy += DeltaE
+                    Mag += 2*Spin[snum] # Spin has been flipped
                 else
                     Spin[snum] = - Spin[snum]  #flip the spin back
                 end
@@ -374,15 +386,16 @@ function main()
            ##---- collect data
            E_avg += Energy
            E2 += Energy*Energy
+           M_avg += Mag;
+           M2 += Mag*Mag;
+
         
         end #MCS
          
          #@show E_avg/num_MCS
          Cv = E2/num_MCS- (E_avg/num_MCS)^2
-         #push!(Es, E_avg/num_MCS/Nspin)
-         #push!(Cvs, Cv/Nspin/T/T)
-         #println(T," ",E_avg/num_MCS," ",E2/num_MCS)
-         println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
+         Susc = M2/num_MCS- (M_avg/num_MCS)^2
+         println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T)
     
     end #T loop
 
