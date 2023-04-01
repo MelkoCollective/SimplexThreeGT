@@ -179,12 +179,7 @@ end #Cube_Label_4D
 
 #------------------------------------------------
 
-function Invert_Cube_4D(Cube)
-
-    N0 = L^Dim  #number of vertices
-    N1 = Dim*N0 #number of bonds
-    N2 = binomial(Dim,2)*N0  #number of plaquettes 
-    N3 = binomial(Dim,3)*N0  #number of cubes
+function Invert_Cube_4D(Cube,N0,N1,N2,N3)
 
     Ncube = N3
     Nspin = N2
@@ -212,7 +207,7 @@ end #Invert_Cube
 
 #-----------------------Energy Calculations---------------------
 
-function Calc_Energy(Spin,Ncube)
+function Calc_Energy(Spin,Ncube,Cube)
 
     #calculate the energy
     cEnergy = 0.
@@ -227,7 +222,7 @@ function Calc_Energy(Spin,Ncube)
     return cEnergy
 end
 
-function Elocal(C1,Spin)
+function Elocal(C1,Spin,Cube)
     prod1 = 1
     for j = 1:6 
         #@show Spin[Cube[C1,j]]
@@ -237,16 +232,16 @@ function Elocal(C1,Spin)
     return prod1 
 end
 
-function Single_Spin_Flip(Spin, snum, Inverse) # This depends on dimension still
+function Single_Spin_Flip(Spin, snum, Inverse,Cube) # This depends on dimension still
 
     Cube1 = Inverse[snum,1] 
     Cube2 = Inverse[snum,2] 
     Cube3 = Inverse[snum,3] 
     Cube4 = Inverse[snum,4] 
 
-    Eold = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
+    Eold = -Elocal(Cube1,Spin,Cube) - Elocal(Cube2,Spin,Cube) - Elocal(Cube3,Spin,Cube) - Elocal(Cube4,Spin,Cube) 
     Spin[snum] = - Spin[snum] 
-    Enew = -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
+    Enew = -Elocal(Cube1,Spin,Cube) - Elocal(Cube2,Spin,Cube) - Elocal(Cube3,Spin,Cube) - Elocal(Cube4,Spin,Cube) 
 
     return Enew - Eold
 
@@ -285,108 +280,114 @@ function MetropolisAccept(DeltaE,T,rng)
 end
 
 #-----------------------MAIN---------------------
-using Random
-rng = MersenneTwister(1334);
+function main()
 
-Dim = 4
-L = 4
-
-N0 = L^Dim  #number of vertices
-N1 = Dim*N0 #number of bonds
-N2 = binomial(Dim,2)*N0  #number of plaquettes 
-N3 = binomial(Dim,3)*N0  #number of cubes
-
-@show(Dim,L)
-Cube, Star = Cube_Label_4D(Dim,L)  #One entry for every dimension
-
-#display(Cube)
-Inverse = Invert_Cube_4D(Cube)
-#@show Inverse
-
-Ncube = N3 #4D definitions
-Nspin = N2
-Nbond = N1
-
-#Spin = ones(Int,Nspin)
-Spin = rand(rng,(-1, 1), Nspin)
-#@show sum(Spin)
-#Calculate initial energy
-Energy = Calc_Energy(Spin,Ncube)
-@show Energy
-
-#Es = Float64[];
-#Cvs = Float64[];
-for T = 1.2:-0.01:0.80
-     #Equ2libriate
-     num_EQL = 2000
-     for i = 1:num_EQL
-        #---- Single Spin Flip
-        for j = 1:(Nspin÷2)
-             snum = rand(rng,1:Nspin) 
-             DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
-             if MetropolisAccept(DeltaE,T,rng) == true 
-                 global Energy += DeltaE
-             else
-                 Spin[snum] = - Spin[snum]  #flip the spin back
-             end
-        end
-        #---- Gauge Star Flip (6 spins)
-        for j = 1:(Nbond÷12)
-            bnum = rand(rng,1:Nbond)  
-            DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
-            if MetropolisAccept(DeltaE,T,rng) == true 
-                global Energy += DeltaE
-            else
-               for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
-                   pnum = Star[pnum,pcount]
-                   Spin[pnum] = - Spin[pnum] 
-               end
-            end
-        end
-    end #Equilibrate
-
-    E_avg = 0.
-    E2 = 0.
-    num_MCS = 20000
-    for i = 1:num_MCS
-       #---- Single Spin Flip
-       for j = 1:(Nspin÷2)
-            snum = rand(rng,1:Nspin) 
-            DeltaE = Single_Spin_Flip(Spin, snum, Inverse) #flips spin
-            if MetropolisAccept(DeltaE,T,rng) == true 
-                global Energy += DeltaE
-            else
-                Spin[snum] = - Spin[snum]  #flip the spin back
-            end
-       end
-       #---- Gauge Star Flip (6 spins)
-       for j = 1:(Nbond÷12)
-           bnum = rand(rng,1:Nbond)  
-           DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
-           if MetropolisAccept(DeltaE,T,rng) == true 
-               global Energy += DeltaE
-           else
-              for pcount = 1:6
-                  pnum = Star[bnum,pcount]
-                  Spin[pnum] = - Spin[pnum] 
-              end
-           end
-       end
-       #---- collect data
-       E_avg += Energy
-       E2 += Energy*Energy
+    rng = MersenneTwister(1334);
     
-    end #MCS
-     
-     #@show E_avg/num_MCS
-     Cv = E2/num_MCS- (E_avg/num_MCS)^2
-     #push!(Es, E_avg/num_MCS/Nspin)
-     #push!(Cvs, Cv/Nspin/T/T)
-     #println(T," ",E_avg/num_MCS," ",E2/num_MCS)
-     println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
+    L = 3
+    Dim = 4
+    
+    N0 = L^Dim  #number of vertices
+    N1 = Dim*N0 #number of bonds
+    N2 = binomial(Dim,2)*N0  #number of plaquettes 
+    N3 = binomial(Dim,3)*N0  #number of cubes
+    
+    @show(Dim,L)
+    Cube, Star = Cube_Label_4D(Dim,L)  #One entry for every dimension
+    
+    #display(Cube)
+    Inverse = Invert_Cube_4D(Cube,N0,N1,N2,N3)
+    #@show Inverse
+    
+    Ncube = N3 #4D definitions
+    Nspin = N2
+    Nbond = N1
+    
+    #Spin = ones(Int,Nspin)
+    Spin = rand(rng,(-1, 1), Nspin)
+    #@show sum(Spin)
+    #Calculate initial energy
+    Energy = Calc_Energy(Spin,Ncube,Cube)
+    @show Energy
+    
+    #Es = Float64[];
+    #Cvs = Float64[];
+    for T = 2.0:-0.1:0.10
+         #Equ2libriate
+         num_EQL = 1000
+         for i = 1:num_EQL
+            #---- Single Spin Flip
+            for j = 1:10 #(Nspin÷2)
+                 snum = rand(rng,1:Nspin) 
+                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube) #flips spin
+                 if MetropolisAccept(DeltaE,T,rng) == true 
+                     Energy += DeltaE
+                 else
+                     Spin[snum] = - Spin[snum]  #flip the spin back
+                 end
+            end
+            ##---- Gauge Star Flip (6 spins)
+            #for j = 1:(Nbond÷12)
+            #    bnum = rand(rng,1:Nbond)  
+            #    DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+            #    if MetropolisAccept(DeltaE,T,rng) == true 
+            #        global Energy += DeltaE
+            #    else
+            #       for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
+            #           pnum = Star[pnum,pcount]
+            #           Spin[pnum] = - Spin[pnum] 
+            #       end
+            #    end
+            #end
+        end #Equilibrate
+    
+        E_avg = 0.
+        E2 = 0.
+        num_MCS = 10000
+        for i = 1:num_MCS
+           #---- Single Spin Flip
+           for j = 1:10 #(Nspin÷2)
+                snum = rand(rng,1:Nspin) 
+                DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube) #flips spin
+                if MetropolisAccept(DeltaE,T,rng) == true 
+                    Energy += DeltaE
+                else
+                    Spin[snum] = - Spin[snum]  #flip the spin back
+                end
+           end
+           ##---- Gauge Star Flip (6 spins)
+           #for j = 1:(Nbond÷12)
+           #    bnum = rand(rng,1:Nbond)  
+           #    DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+           #    if MetropolisAccept(DeltaE,T,rng) == true 
+           #        global Energy += DeltaE
+           #    else
+           #       for pcount = 1:6
+           #           pnum = Star[bnum,pcount]
+           #           Spin[pnum] = - Spin[pnum] 
+           #       end
+           #    end
+           #end
+           ##---- collect data
+           E_avg += Energy
+           E2 += Energy*Energy
+        
+        end #MCS
+         
+         #@show E_avg/num_MCS
+         Cv = E2/num_MCS- (E_avg/num_MCS)^2
+         #push!(Es, E_avg/num_MCS/Nspin)
+         #push!(Cvs, Cv/Nspin/T/T)
+         #println(T," ",E_avg/num_MCS," ",E2/num_MCS)
+         println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T)
+    
+    end #T loop
 
-end #T loop
+end #main
 
+using Random
+main()
+    
 # using UnicodePlots
 # UnicodePlots.lineplot(collect(1:length(Es)), Es)
 #println("Edlánat’e World")
