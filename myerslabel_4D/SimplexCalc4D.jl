@@ -232,7 +232,7 @@ function Elocal(C1,Spin,Cube)
     return prod1 
 end
 
-function Single_Spin_Flip(Spin, snum, Inverse,Cube) # This depends on dimension still
+function Single_Spin_Flip(Spin, snum, Inverse,Cube,H) # This depends on dimension still
 
     Cube1 = Inverse[snum,1] 
     Cube2 = Inverse[snum,2] 
@@ -243,7 +243,9 @@ function Single_Spin_Flip(Spin, snum, Inverse,Cube) # This depends on dimension 
     Spin[snum] = - Spin[snum] 
     Enew = -Elocal(Cube1,Spin,Cube) - Elocal(Cube2,Spin,Cube) - Elocal(Cube3,Spin,Cube) - Elocal(Cube4,Spin,Cube) 
 
-    return Enew - Eold
+    deltaHenergy = -2*H*Spin[snum] #assuming Spin has changed sign
+
+    return Enew - Eold 
 
 end #Single_Spin_Flip
 
@@ -286,6 +288,7 @@ function main()
     
     L = 3
     Dim = 4
+    H = 0  #magnetic/matter field
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -319,7 +322,7 @@ function main()
             #---- Single Spin Flip
             for j = 1:10 #(Nspin÷2)
                  snum = rand(rng,1:Nspin) 
-                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube) #flips spin
+                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube,H) #flips spin
                  if MetropolisAccept(DeltaE,T,rng) == true 
                      Energy += DeltaE
                  else
@@ -348,7 +351,7 @@ function main()
            #---- Single Spin Flip
            for j = 1:10 #(Nspin÷2)
                 snum = rand(rng,1:Nspin) 
-                DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube) #flips spin
+                DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube,H) #flips spin
                 if MetropolisAccept(DeltaE,T,rng) == true 
                     Energy += DeltaE
                 else
