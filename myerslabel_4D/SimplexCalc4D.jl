@@ -296,7 +296,7 @@ function main()
     
     L = 3
     Dim = 4
-    H = 0.2  #magnetic/matter field
+    H = 0.8  #magnetic/matter field
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
