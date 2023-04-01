@@ -207,7 +207,7 @@ end #Invert_Cube
 
 #-----------------------Energy Calculations---------------------
 
-function Calc_Energy(Spin,Ncube,Cube)
+function Calc_Energy(Spin,Ncube,Cube,H)
 
     #calculate the energy
     cEnergy = 0.
@@ -218,6 +218,12 @@ function Calc_Energy(Spin,Ncube,Cube)
         end
         cEnergy += -prod
     end
+
+    Mag = 0
+    for s in Spin
+        Mag += s
+    end
+    cEnergy -= H*Mag
 
     return cEnergy
 end
@@ -245,7 +251,7 @@ function Single_Spin_Flip(Spin, snum, Inverse,Cube,H) # This depends on dimensio
 
     deltaHenergy = -2*H*Spin[snum] #assuming Spin has changed sign
 
-    return Enew - Eold 
+    return Enew - Eold + deltaHenergy
 
 end #Single_Spin_Flip
 
@@ -290,7 +296,7 @@ function main()
     
     L = 3
     Dim = 4
-    H = 0  #magnetic/matter field
+    H = 0.2  #magnetic/matter field
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -312,14 +318,14 @@ function main()
     Spin = rand(rng,(-1, 1), Nspin)
     #@show sum(Spin)
     #Calculate initial energy
-    Energy = Calc_Energy(Spin,Ncube,Cube)
+    Energy = Calc_Energy(Spin,Ncube,Cube,H)
     @show Energy
     
     #Es = Float64[];
     #Cvs = Float64[];
-    for T = 2.0:-0.1:0.10
+    for T = 2.2:-0.1:0.20
          #Equ2libriate
-         num_EQL = 1000
+         num_EQL = 10000
          for i = 1:num_EQL
             #---- Single Spin Flip
             for j = 1:10 #(Nspin÷2)
@@ -357,7 +363,7 @@ function main()
         end
         #@show(Mag)
 
-        num_MCS = 10000
+        num_MCS = 100000
         for i = 1:num_MCS
            #---- Single Spin Flip
            for j = 1:10 #(Nspin÷2)
@@ -388,11 +394,9 @@ function main()
            E2 += Energy*Energy
            M_avg += Mag;
            M2 += Mag*Mag;
-
         
         end #MCS
          
-         #@show E_avg/num_MCS
          Cv = E2/num_MCS- (E_avg/num_MCS)^2
          Susc = M2/num_MCS- (M_avg/num_MCS)^2
          println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T)
@@ -404,6 +408,4 @@ end #main
 using Random
 main()
     
-# using UnicodePlots
-# UnicodePlots.lineplot(collect(1:length(Es)), Es)
 #println("Edlánat’e World")
