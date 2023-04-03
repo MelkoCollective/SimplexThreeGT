@@ -294,10 +294,9 @@ function main()
 
     rng = MersenneTwister(1334);
     
-    L = 3
+    L = 4
     Dim = 4
-    H = 0.0  #magnetic/matter field
-    T = 0.7
+    H = 0.8  #magnetic/matter field
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -324,9 +323,9 @@ function main()
     
     #Es = Float64[];
     #Cvs = Float64[];
-    for H = 0.0:0.02:1.00
+    for T = 2.2:-0.05:0.20
          #Equ2libriate
-         num_EQL = 20000
+         num_EQL = 10000
          for i = 1:num_EQL
             #---- Single Spin Flip
             for j = 1:10 #(Nspin÷2)
@@ -364,10 +363,10 @@ function main()
         end
         #@show(Mag)
 
-        num_MCS = 500000
+        num_MCS = 1000000
         for i = 1:num_MCS
            #---- Single Spin Flip
-           for j = 1:20 #(Nspin÷2)
+           for j = 1:50 #(Nspin÷2)
                 snum = rand(rng,1:Nspin) 
                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube,H) #flips spin
                 if MetropolisAccept(DeltaE,T,rng) == true 
@@ -400,7 +399,7 @@ function main()
          
          Cv = E2/num_MCS- (E_avg/num_MCS)^2
          Susc = M2/num_MCS- (M_avg/num_MCS)^2
-         println(T," ",H," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T)
+         println(T," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T)
     
     end #T loop
 

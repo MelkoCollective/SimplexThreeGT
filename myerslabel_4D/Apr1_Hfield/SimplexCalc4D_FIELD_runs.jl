@@ -297,7 +297,7 @@ function main()
     L = 3
     Dim = 4
     H = 0.0  #magnetic/matter field
-    T = 0.7
+    T = 1.0
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -324,9 +324,9 @@ function main()
     
     #Es = Float64[];
     #Cvs = Float64[];
-    for H = 0.0:0.02:1.00
+    for H = 0.0:0.02:1.20
          #Equ2libriate
-         num_EQL = 20000
+         num_EQL = 50000
          for i = 1:num_EQL
             #---- Single Spin Flip
             for j = 1:10 #(Nspin÷2)
@@ -364,10 +364,10 @@ function main()
         end
         #@show(Mag)
 
-        num_MCS = 500000
+        num_MCS = 3000000
         for i = 1:num_MCS
            #---- Single Spin Flip
-           for j = 1:20 #(Nspin÷2)
+           for j = 1:25 #(Nspin÷2)
                 snum = rand(rng,1:Nspin) 
                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube,H) #flips spin
                 if MetropolisAccept(DeltaE,T,rng) == true 
