@@ -205,6 +205,18 @@ function Invert_Cube_4D(Cube,N0,N1,N2,N3)
 return Inverse
 end #Invert_Cube
 
+#----------------------- Wilson Surface ---------------------
+function WilsonSurfaceXY(Spin,Cube,L)
+
+    Wil = 1
+    for i = L*L #one plane
+        Wil *= Spin[Cube[i,1]] #plane 1 is in the XY plane
+    end
+
+    return Wil
+
+end #WilsonSurfaceXY
+
 #-----------------------Energy Calculations---------------------
 
 function Calc_Energy(Spin,Ncube,Cube,H)
@@ -297,7 +309,7 @@ function main()
     L = 3
     Dim = 4
     H = 0.0  #magnetic/matter field
-    T = 0.7
+    T = 1.3
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -315,18 +327,18 @@ function main()
     Nspin = N2
     Nbond = N1
     
-    #Spin = ones(Int,Nspin)
-    Spin = rand(rng,(-1, 1), Nspin)
-    #@show sum(Spin)
+    Spin = ones(Int,Nspin)
+    #Spin = rand(rng,(-1, 1), Nspin)
+    @show WilsonSurfaceXY(Spin,Cube,L)
     #Calculate initial energy
     Energy = Calc_Energy(Spin,Ncube,Cube,H)
     @show Energy
     
     #Es = Float64[];
     #Cvs = Float64[];
-    for H = 0.0:0.02:1.00
+    for T = 1.5:-0.05:0.1
          #Equ2libriate
-         num_EQL = 20000
+         num_EQL = 50000
          for i = 1:num_EQL
             #---- Single Spin Flip
             for j = 1:10 #(Nspin÷2)
@@ -353,10 +365,12 @@ function main()
             #end
         end #Equilibrate
     
+        #Initialize running MC averages
         E_avg = 0.
         E2 = 0.
         M_avg = 0.
         M2 = 0.
+        Wxy = 0.
 
         Mag = 0
         for s in Spin
@@ -364,10 +378,10 @@ function main()
         end
         #@show(Mag)
 
-        num_MCS = 500000
+        num_MCS = 2000000
         for i = 1:num_MCS
            #---- Single Spin Flip
-           for j = 1:20 #(Nspin÷2)
+           for j = 1:25 #(Nspin÷2)
                 snum = rand(rng,1:Nspin) 
                 DeltaE = Single_Spin_Flip(Spin, snum, Inverse,Cube,H) #flips spin
                 if MetropolisAccept(DeltaE,T,rng) == true 
@@ -395,12 +409,13 @@ function main()
            E2 += Energy*Energy
            M_avg += Mag;
            M2 += Mag*Mag;
+           Wxy += WilsonSurfaceXY(Spin,Cube,L) #scales as L^2
         
         end #MCS
          
          Cv = E2/num_MCS- (E_avg/num_MCS)^2
          Susc = M2/num_MCS- (M_avg/num_MCS)^2
-         println(T," ",H," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T)
+         println(T," ",H," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T," ",Wxy/num_MCS)
     
     end #T loop
 
