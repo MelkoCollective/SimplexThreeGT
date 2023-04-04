@@ -264,27 +264,27 @@ function Single_Spin_Flip(Spin, snum, Inverse,Cube,H) # This depends on dimensio
     deltaHenergy = -2*H*Spin[snum] #assuming Spin has changed sign
 
     return Enew - Eold + deltaHenergy
-
+                                                                                                                                                                                                                                                                                                                                    
 end #Single_Spin_Flip
-
-function Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
+                                                                                                                                                                                                                                                                                                                                                       
+function Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
 
     Eold = 0
     Enew = 0
+    deltaHenergy = 0
     for pcount = 1:6
         snum = Star[bnum,pcount]
         Cube1 = Inverse[snum,1] 
         Cube2 = Inverse[snum,2] 
         Cube3 = Inverse[snum,3] 
         Cube4 = Inverse[snum,4] 
-        Eold += -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
+        Eold += -Elocal(Cube1,Spin,Cube) - Elocal(Cube2,Spin,Cube) - Elocal(Cube3,Spin,Cube) - Elocal(Cube4,Spin,Cube) 
         Spin[snum] = - Spin[snum] 
-        Enew += -Elocal(Cube1,Spin) - Elocal(Cube2,Spin) - Elocal(Cube3,Spin) - Elocal(Cube4,Spin) 
+        Enew += -Elocal(Cube1,Spin,Cube) - Elocal(Cube2,Spin,Cube) - Elocal(Cube3,Spin,Cube) - Elocal(Cube4,Spin,Cube) 
+        deltaHenergy += -2*H*Spin[snum] #assuming Spin has changed sign
     end
 
-    println("Need H field in Gauge Flip")
-
-    return Enew - Eold
+    return Enew - Eold + deltaHenergy
 
 end #Gague_Star_Flip
 
@@ -309,7 +309,7 @@ function main()
     L = 3
     Dim = 4
     H = 0.0  #magnetic/matter field
-    T = 1.3
+    T = 1.5
     
     N0 = L^Dim  #number of vertices
     N1 = Dim*N0 #number of bonds
@@ -350,20 +350,20 @@ function main()
                      Spin[snum] = - Spin[snum]  #flip the spin back
                  end
             end
-            ##---- Gauge Star Flip (6 spins)
-            #for j = 1:(Nbond÷12)
-            #    bnum = rand(rng,1:Nbond)  
-            #    DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
-            #    if MetropolisAccept(DeltaE,T,rng) == true 
-            #        global Energy += DeltaE
-            #    else
-            #       for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
-            #           pnum = Star[pnum,pcount]
-            #           Spin[pnum] = - Spin[pnum] 
-            #       end
-            #    end
-            #end
-        end #Equilibrate
+            #---- Gauge Star Flip (6 spins)
+            for j = 1:5 #(Nbond÷12)
+                bnum = rand(rng,1:Nbond)  
+                DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
+                if MetropolisAccept(DeltaE,T,rng) == true 
+                    Energy += DeltaE
+                else
+                   for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
+                       pnum = Star[pnum,pcount]
+                       Spin[pnum] = - Spin[pnum] 
+                   end
+                end
+            end
+         end #Equilibrate
     
         #Initialize running MC averages
         E_avg = 0.
@@ -378,7 +378,7 @@ function main()
         end
         #@show(Mag)
 
-        num_MCS = 2000000
+        num_MCS = 10000000
         for i = 1:num_MCS
            #---- Single Spin Flip
            for j = 1:25 #(Nspin÷2)
@@ -391,20 +391,24 @@ function main()
                     Spin[snum] = - Spin[snum]  #flip the spin back
                 end
            end
-           ##---- Gauge Star Flip (6 spins)
-           #for j = 1:(Nbond÷12)
-           #    bnum = rand(rng,1:Nbond)  
-           #    DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star)  #This only works for 4D
-           #    if MetropolisAccept(DeltaE,T,rng) == true 
-           #        global Energy += DeltaE
-           #    else
-           #       for pcount = 1:6
-           #           pnum = Star[bnum,pcount]
-           #           Spin[pnum] = - Spin[pnum] 
-           #       end
-           #    end
-           #end
-           ##---- collect data
+           #---- Gauge Star Flip (6 spins)
+           for j = 1:10 #(Nbond÷12)
+               bnum = rand(rng,1:Nbond)  
+               DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
+               if MetropolisAccept(DeltaE,T,rng) == true 
+                   Energy += DeltaE
+                   for pcount = 1:6 #recording the magnetization change
+                        pnum = Star[bnum,pcount]
+                        Mag += 2*Spin[pnum] 
+                    end
+               else
+                  for pcount = 1:6
+                      pnum = Star[bnum,pcount]
+                      Spin[pnum] = - Spin[pnum] 
+                  end
+               end
+           end
+           #---- collect data
            E_avg += Energy
            E2 += Energy*Energy
            M_avg += Mag;
