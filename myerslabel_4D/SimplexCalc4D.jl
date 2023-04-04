@@ -306,9 +306,9 @@ function main()
 
     rng = MersenneTwister(1334);
     
-    L = 3
+    L = 4
     Dim = 4
-    H = 0.0  #magnetic/matter field
+    H = 0.1  #magnetic/matter field
     T = 1.5
     
     N0 = L^Dim  #number of vertices
@@ -338,7 +338,7 @@ function main()
     #Cvs = Float64[];
     for T = 1.5:-0.05:0.1
          #Equ2libriate
-         num_EQL = 50000
+         num_EQL = 500
          for i = 1:num_EQL
             #---- Single Spin Flip
             for j = 1:10 #(Nspin÷2)
@@ -358,7 +358,7 @@ function main()
                     Energy += DeltaE
                 else
                    for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
-                       pnum = Star[pnum,pcount]
+                       pnum = Star[bnum,pcount]
                        Spin[pnum] = - Spin[pnum] 
                    end
                 end
@@ -378,7 +378,7 @@ function main()
         end
         #@show(Mag)
 
-        num_MCS = 10000000
+        num_MCS = 100000
         for i = 1:num_MCS
            #---- Single Spin Flip
            for j = 1:25 #(Nspin÷2)
