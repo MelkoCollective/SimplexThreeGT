@@ -308,7 +308,7 @@ function main()
     
     L = 3
     Dim = 4
-    H = 0.2  #magnetic/matter field
+    H = 0.0  #magnetic/matter field
     T = 1.5
     
     N0 = L^Dim  #number of vertices
@@ -350,18 +350,18 @@ function main()
                  end
             end
             #---- Gauge Star Flip (6 spins)
-            for j = 1:5 #(Nbond÷12)
-                bnum = rand(rng,1:Nbond)  
-                DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
-                if MetropolisAccept(DeltaE,T,rng) == true 
-                    Energy += DeltaE
-                else
-                   for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
-                       pnum = Star[bnum,pcount]
-                       Spin[pnum] = - Spin[pnum] 
-                   end
-                end
-            end
+            #for j = 1:5 #(Nbond÷12)
+            #    bnum = rand(rng,1:Nbond)  
+            #    DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
+            #    if MetropolisAccept(DeltaE,T,rng) == true 
+            #        Energy += DeltaE
+            #    else
+            #       for pcount = 1:6 #flip back the 6 spins that were flipped in the gauge move
+            #           pnum = Star[bnum,pcount]
+            #           Spin[pnum] = - Spin[pnum] 
+            #       end
+            #    end
+            #end
          end #Equilibrate
     
         #Initialize running MC averages
@@ -391,22 +391,22 @@ function main()
                 end
            end
            #---- Gauge Star Flip (6 spins)
-           for j = 1:10 #(Nbond÷12)
-               bnum = rand(rng,1:Nbond)  
-               DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
-               if MetropolisAccept(DeltaE,T,rng) == true 
-                   Energy += DeltaE
-                   for pcount = 1:6 #recording the magnetization change
-                        pnum = Star[bnum,pcount]
-                        Mag += 2*Spin[pnum] 
-                    end
-               else
-                  for pcount = 1:6
-                      pnum = Star[bnum,pcount]
-                      Spin[pnum] = - Spin[pnum] 
-                  end
-               end
-           end
+           #for j = 1:10 #(Nbond÷12)
+           #    bnum = rand(rng,1:Nbond)  
+           #    DeltaE = Gauge_Star_Flip(Spin,bnum,Inverse,Star,Cube,H)  #This only works for 4D
+           #    if MetropolisAccept(DeltaE,T,rng) == true 
+           #        Energy += DeltaE
+           #        for pcount = 1:6 #recording the magnetization change
+           #             pnum = Star[bnum,pcount]
+           #             Mag += 2*Spin[pnum] 
+           #         end
+           #    else
+           #       for pcount = 1:6
+           #           pnum = Star[bnum,pcount]
+           #           Spin[pnum] = - Spin[pnum] 
+           #       end
+           #    end
+           #end
            #---- collect data
            E_avg += Energy
            E2 += Energy*Energy
