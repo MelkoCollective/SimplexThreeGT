@@ -19,6 +19,7 @@
 
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
 \newcommand{\expect}[1]{\left\langle #1 \right\rangle}
 \newcommand{\commute}[2]{\left[ #1,#2 \right]}
 \newcommand{\acommute}[2]{\left{ #1,#2 \right}}
@@ -93,7 +94,7 @@ the product of edge spins that attached to the same vertex on the vertices is th
 This also means there is an effective spin at
 the vertex (denotes whether all edges attached to the vertex) is completely free.
 Thus it creates a freedom of $N_0$ spins where $N_0$ is the number of $0$-cell (the vertices)
-, thus the degeneracy is at scale $2^{N_0}$. 
+, thus the degeneracy is at scale $2^{N_0}$.
 
 \begin{figure}[h]
     \centering
@@ -305,7 +306,7 @@ group\cite{wiki-euler-characteristic,algebra-topology-sjer}.
 % \end{aligned}
 % $$
 
-% thus 
+% thus
 
 % $$
 % \begin{pmatrix}
@@ -391,6 +392,289 @@ we have the same partition function as standard Ising model
 
 this means the SW updates and Wolf update still holds as a cluster
 on $(p+1)$-cell chains.
+
+\section{The critial field}
+
+General interaction of a system of $N_s$ Ising spins $S(r) = \pm 1$ located at sites $r$ of a
+lattice can be written as
+
+\begin{equation}
+    H = -\sum_b I(b) R(b)
+\end{equation}
+
+where $I(b) \in \mathcal{R}$ is the interaction strength, and
+
+\begin{equation}
+    R(b) = \prod_{r} S(r)^{\theta(r, b)} \quad \theta(r, b)\in \{0,1\}
+\end{equation}
+
+then assuming $S(r) = (-1)^{\sigma(r)},\sigma(r) \in \{0,1\}$, $R(b)=(-1)^{\rho(b)}$,
+we have $\rho(b) = \bigoplus_{r}\theta(r,b)\sigma(r)$. Let $N_{\theta}$ be the rank
+of the matrix $\theta(r, b)$. Then there are $2^{N_{\theta}}$ different configurations
+$\{\rho(b)\}$. Assume interaction constants $I(b)$ are positive, the ground states of the system
+are defined by $R(b) = 1$ for all $b$. Thus the ground states are determined by
+
+\begin{equation}
+    \bigoplus_{r}\theta(r,b)\sigma_0(r) = 0\quad \forall b
+\end{equation}
+
+this has $2^{N_g}$ solutions with $N_g = N_s - N_{\theta}$. We associate
+the unitary operators $U\{\sigma_0\} = \prod_{r}S_{x}(r)^{\sigma_0(r)}$
+
+\begin{equation}
+    S_x^2(r) = 1, \quad S_x(r)S(r)S_x(r)^{-1} = -S(r)
+\end{equation}
+
+The operators $U$ commute with all operators $R$
+
+\begin{equation}
+    \begin{aligned}
+        U\{\sigma_0\} R(b) U\{\sigma_0\}^{-1}
+        &=\prod_{r}S_{x}(r)^{\sigma_0(r)} \prod_{r} (S(r))^{\theta(r, b)} \prod_{r}S_{x}^{-1}(r)^{\sigma_0(r)}\\
+        &=\prod_{r} (S_{x}S(r)S_{x}^{-1})^{\bigoplus_{r}\theta(r, b)\sigma_0(r)}\\
+        &=\prod_{r} (-1)^{\bigoplus_{r}\theta(r, b)\sigma_0(r)}\\
+        &=R(b)
+    \end{aligned}
+\end{equation}
+
+Therefore, all the operators $U$ commute with the Hamiltonian:
+
+\begin{equation}
+    U\{\sigma_0\} H U\{\sigma_0\}^{-1} = H
+\end{equation}
+
+A product of spins $\prod_r S(r)^{\psi(r)},\psi(r)\in\{0, 1\}$, is transformed
+by $U\{\sigma_0\}$ into
+
+\begin{equation}
+    U\{\sigma_0\}\prod_{r} S(r)^{\psi(r)} U\{\sigma_0\}^{-1} = \prod_r S(r)^{\psi(r)} (-1)^{\oplus \psi(r)\sigma_0(r)}
+\end{equation}
+
+\subsection{The dual relation}
+
+Given partition function
+
+\begin{equation}
+    \begin{aligned}
+        Z\{K\} &= \sum_{\{S(r)\}} e^{-\beta H\{\mathbf{S}\}} = \sum_{\{S(r)\}} \prod_b e^{K(b) R(b)}\\
+    \end{aligned}
+\end{equation}
+
+\begin{equation}
+    \begin{aligned}
+        e^{K(b)R(b)} &= \frac{e^{-K(b)} + e^{K(b)}}{2} (1 + R(b) \frac{e^{-K(b)} - e^{K(b)}}{e^{-K(b)} + e^{K(b)}})\\
+        &= \frac{1}{2} (e^{-K(b)} + e^{K(b)} + R(b)(e^{-K(b)} - e^{K(b)}))\\
+        &= e^{-K(b)} \quad \text{or} \quad e^{K(b)}\\
+        &= \cosh{K(b)}[1 + R(b)\tanh{K(b)}]\\
+        &= \cosh{K(b)}\sum_{\phi(b)} R(b)^{\phi(b)}\tanh{K(b)}^{\phi(b)}
+    \end{aligned}
+\end{equation}
+
+thus we have
+
+\begin{equation}
+    \begin{aligned}
+        Z\{K\} &= \sum_{\{S(r)\}} \prod_b \cosh{K(b)}\sum_{\phi(b)} R(b)^{\phi(b)}\tanh{K(b)}^{\phi(b)}\\
+        &=\prod_b \cosh{K(b)} \sum_{\phi(b)} \tanh{K(b)}^{\phi(b)} \sum_{\{S(r)\}} R(b)^{\phi(b)} \quad \text{(reorder the summation)}
+    \end{aligned}
+\end{equation}
+
+If $R(b)^{\phi(b)} = 1$ then we have $\sum_{\{S(r)\}} R(b)^{\phi(b)} = 2^{N_s}$ otherwise the sum vanishes, then
+we always have the dual relation that $Z\{K\} = Z^{*}\{K^{*}\} = 0$.
+Denote the solution of product of operators $R(b)^{\phi(b)} = 1$ to be $\phi_0(b)$, and we have
+
+\begin{equation}
+    \oplus_b \theta(r, b)\phi_0(b) = 0\quad \forall r
+\end{equation}
+
+then we have
+
+\begin{equation}
+    Z\{K\} = 2^{N_s} \prod_b\cosh{K(b)} \sum_{\{\phi_0(b)\}} \prod_b \tanh(K(b))^{\phi_0(b)}
+\end{equation}
+
+On the other hand, the partition function $Z^{*}\{K^{*}\}$ can be written as
+
+\begin{equation}
+    \begin{aligned}
+        Z^{*}\{K^{*}\} &= \sum_{\{S(r^*)\}} e^{-\beta H^*{S}} = \sum_{\{S(r^*)\}} \prod_b e^{K^*(b)R^*(b)}\\
+        &=\prod_b e^{K^{*}(b)}\sum_{\{S(r^*)\}}\prod_b e^{-2K^*(b)\rho^*(b)}
+    \end{aligned}
+\end{equation}
+
+where $R^{*}(b) = (-1)^{\rho^*(b)} = 1 - 2\rho^*(b)$, if we have the closure condition
+
+\begin{equation}
+    \oplus\theta(r, b)\theta^{*}(r^{*}, b) = 0
+\end{equation}
+
+we have
+
+\begin{equation}
+    \oplus_b \theta(r, b)\rho^{*}(b) = \oplus_b\oplus_r \theta(r, b)\theta^{*}(r^*, b)\sigma(r^*) = 0
+\end{equation}
+
+thus we have $\rho^*(b) = \phi_0(b)$, it follows that
+
+\begin{equation}
+    Z^{*}\{K^*\} = \prod_b e^{K^{*}(b)} \sum_{\{\phi_0(b)\}} N\{\phi_0\} \prod_b e^{-2K^{*}(b)\phi_0(b)}
+\end{equation}
+
+Here $N\{\phi_0\}$ denotes the number of configurations $\{S(r^*)\}$ which obey
+
+\begin{equation}
+    \phi_0(b) = \oplus_{r^*} \theta(r^{*}, b)\sigma(r^{*})\quad \forall b
+\end{equation}
+
+If for a given set $\{\phi_0(b)\}$ there is no solution then $N\{\phi_0\} = 0$,
+otherwise $N\{\phi_0\} = 2^{N_s^* - N_{\theta}^*}$, and for $\beta^* = 0$ it follows
+that
+
+\begin{equation}
+    Z^{*} = 2^{N_s^*} = \sum_{\{\phi_0\}} N\{\phi_0\}
+\end{equation}
+
+There are $2^{N_b - N_{\theta}} = 2^{N_{\theta}^{*}}$ sets $\{\phi_0(b)\}$,
+where $N_{\theta} + N_{\theta}^{*} = N_b$, and $N_b$ is the number of bonds.
+Therefore all $N$ obey $N\{\phi_0\} = 2^{N_{s}^* - N_{\theta}^*}$. From one
+obtains
+
+\begin{equation}
+    Z^{*}\{K^{*}\} = 2^{N_g^*} \prod_b e^{K^{*}(b)} \sum_{\{\phi_0(b)\}}\prod_{b} e^{-2K^{*}(b)\phi_0(b)}
+\end{equation}
+
+Thus for the symmetric partition function $Y\{K\}$ where
+
+\begin{equation}
+    \begin{aligned}
+        Y\{K\} &= Z\{K\} 2^{-(N_s + N_g)/2} \prod_b[\cosh{2K(b)}]^{-1/2}\\
+        Z\{K\} &= \sum_{\{S(r)\}} e^{-\beta H\{S\}}
+    \end{aligned}
+\end{equation}
+
+Now we can check
+
+\begin{equation}
+    \begin{aligned}
+        Y\{K\} &= 2^{(N_{\theta})/2} (\prod_b\cosh{K(b)} \cosh{2K(b)}^{-1/2}) \sum_{\{\phi_0(b)\}} (\prod_b \tanh(K(b))^{\phi_0(b)})\\
+        &= 2^{(N_{\theta})/2} (\prod_b \cosh(K(b)) \sinh(2K(b))^{-1/2} (\tanh(2K(b)))^{1/2}) \sum_{\{\phi_0(b)\}} \prod_b e^{-2K^{*}(b)\phi_0(b)}\\
+        &= 2^{(N_{\theta})/2} (\prod_b \tanh(K(b))^{-1} \sinh(K(b)) (2\sinh(K(b))\cosh(K(b)))^{-1/2} ) \sum_{\{\phi_0(b)\}} \prod_b e^{-2K^{*}(b)\phi_0(b)}\\
+        &= 2^{(N_{\theta})/2} (\prod_b 2^{-1/2} \tanh(K(b))^{-1} (\tanh(K(b)))^{1/2}) \sum_{\{\phi_0(b)\}} \prod_b e^{-2K^{*}(b)\phi_0(b)}\\
+        &= 2^{(N_{\theta})/2} (\prod_b 2^{-1/2} \tanh(K(b))^{1/2}) \sum_{\{\phi_0(b)\}} \prod_b e^{-2K^{*}(b)\phi_0(b)}\\
+        &= 2^{(N_{\theta} - N_{b})/2} (\prod_b e^{-K^{*}(b)}) \sum_{\{\phi_0(b)\}} \prod_b e^{-2K^{*}(b)\phi_0(b)}\\
+        &= 2^{-N_{\theta}^{*}/2} (\prod_b e^{-K^{*}(b)}) \sum_{\{\phi_0(b)\}} \prod_b e^{-2K^{*}(b)\phi_0(b)}\\
+        &= Y^*\{K^{*}\}
+    \end{aligned}
+\end{equation}
+
+In general we can define Ising model $M_{dn}$ on the lattice $L$ with $n$ dimentional bonds consists
+of Ising spins $S(r) = \pm 1$ at all sites $r = r^{(n-1)}$ interacting via
+
+\begin{equation}
+    -\beta H_{dn} = K\sum_{r^{(n)}} \prod_{r} S(r)^{\theta(r, r^{(n)})} + h\sum_{r} S(r)
+\end{equation}
+
+where $n$ denotes the $n-\text{cell}$, and $d$ denotes the dimention. In general $M_{dn}$ has
+$N_s = \binom{d}{n}N$ Ising spins located at the centers of $(n-1)-d$ hypercubes.
+
+\begin{definition}
+    (Boundary function). The boundary function $\Theta(r^{m}, r^{(m-1)})$ is defined as
+    \begin{equation}
+        \Theta(r^{m}, r^{(m-1)}) = \begin{cases}
+            0 & \text{$r^{(m-1)}$ lies on the boundary of $B(r^{(m)})$}\\
+            1 & \text{otherwise}\\
+        \end{cases}
+    \end{equation} and we have its dual $\Theta^{*}(r^{m}, r^{(m-1)})$ defined as
+    \begin{equation}
+        \Theta^{*}(r^{m}, r^{(m-1)}) = \begin{cases}
+            1 & \text{if $r^{(m)}$ lies on the boundary of $B^{*}(r^{(m-1)})$}\\
+            \Theta(r^{m}, r^{(m-1)}) & \text{otherwise}
+        \end{cases}
+    \end{equation}
+    that is, if $r^{(m-1)}$ lies on the boundary of $B(r^{(m)})$, then $r^{(m)}$ lies
+    on the boundary of $B^{*}(r^{(m-1)})$.
+\end{definition}
+
+\begin{corollary}
+    The $m$-dimensional boundaries of $B^{(m+1)}$ form a closed $m$-dimensional hypersurface,
+    two $m$-dimensional boundaries $B^{(m)}$ of $B^{(m+1)}$ meet in each $(m-1)$-dimensional
+    hypercell at the boundary of $B^{(m+1)}$. Therefore
+
+    \begin{equation}
+        \oplus_{r^{(m)}} \Theta(r^{(m-1)}, r^{(m)})\Theta(r^{(m)}, r^{(m+1)}) = 0
+    \end{equation}
+\end{corollary}
+
+\begin{theorem}
+    model $M_{dn}$ and model $M_{d,d-n+1}^{*}$ are related by the duality relation
+    \begin{equation}
+        Y_{dn}(K, h) = Y_{d, d-n+1}^{*}(K^*, h^*)
+    \end{equation}
+    with
+    \begin{equation}
+        \tanh{K} = e^{-2h^{*}} \quad \tanh{h} = e^{-2K^{*}}
+    \end{equation}
+\end{theorem}
+
+\begin{equation}
+    \begin{aligned}
+        K_{c,dn}(h) &= K_{c,dn}(0) - h^{2n} + \cdots\\
+        h_{c,dn}(K) &= K_{c,d d-n}(0) - \sinh{2K_{c,d d-n}(0)} e^{-4nK}\\
+        h_{c,43}(K) &= K_{c,41}(0) - \sinh{2K_{c,41}(0)} e^{-12K}\\
+        h_{c,43}(K)/K_{c,41}(0) &= 1 - \frac{\sinh{2K_{c,41}(0)}}{K_{c,41}} e^{-12K}
+    \end{aligned}
+\end{equation}
+
+\begin{equation}
+    \begin{aligned}
+        K_{c,32}(h) &= K_{c,32}(0) - h^{4}\\
+        K_{c,31}(h) &= K_{c,31}(0) - h^2\\
+        h_{c,32}(K) &= K_{c,31}(0) - \sinh{2K_{c,3,1}(0)} e^{-8K}\\
+        K_{c,32}^{-1} &= \frac{1}{K_{c,32}(0) - K_c^4 (h/K_c)^4}
+    \end{aligned}
+\end{equation}
+
+
+\newpage
+
+\begin{equation}
+    \begin{aligned}
+        Y_{dn}(K, h) &= Y_{d,d-n+1}^{*}(K^{*}, h^{*})\\
+        \tanh{K} &= e^{-2h^{*}}\quad \tanh{h} = e^{-2K^{*}}\\
+    \end{aligned}
+\end{equation}
+
+\begin{equation}
+    \begin{aligned}
+        \tanh{K_{dn}} = e^{-2h_{d(d-n)}}\\
+        \tanh{h_{dn}} = e^{-2K_{d(d-n)}}\\
+        \tanh{K} &= \frac{e^{K} - e^{-K}}{e^{K} + e^{-K}} = \frac{1 - e^{-2K}}{1 + e^{-2K}} \approx (1 - e^{-2K})\\
+        h_{d(d-n)} = -\frac{1}{2} \log{\tanh{K_{dn}}}\\
+        h^{2n}_{d(d-n)} = \frac{1}{2^{2n}} \log{\tanh{K_{dn}}}^{2n}\\
+        K_{c,d(d-n)}(h) &= K_{c,d(d-n)}(0) - h_{d(d-n)}^{2n}\\
+        h_{c,dn} \approx \tanh{h_{c,dn}} &= e^{-2K_{c,d(d-n)}}\\
+        &= e^{-2 (K_{c,d(d-n)}(0) - h_{d(d-n)}^{2n})}\\
+        &= e^{-2 K_{c,d(d-n)}(0)} e^{-2 h_{d(d-n)}^{2n}}\\
+        \tanh{h_{c,dn}} = e^{-2K_{c,d(d-n+1)}}\\
+        \tanh{h_{c,dn}}^{-1} = e^{2K_{c,d(d-n+1)}}\\
+        \frac{e^{h} - e^{-h}}{e^{h} + e^{-h}} + \frac{e^{h} + e^{-h}}{e^{h} - e^{-h}}\\
+        \frac{e^{2h} + e^{-2h}}{e^{2h} - e^{-2h}}
+    \end{aligned}
+\end{equation}
+
+\begin{equation}
+    \begin{aligned}
+        h_{c,dn} = e^{-2K_{c,d(d-n+1)}} = e^{-2K_{c,d(d-n+1)}(0) -2 h_{c,d(d-n+1)}^{2n}}
+    \end{aligned}
+\end{equation}
+
+% \begin{proof}
+%     If we label the interaction of the spin $S(r^{(n-1)})$ with the external magnetic field by $b(r^{(n-1)})$
+%     and teh interaction of the spins on the boundary of $B(r^{(n)})$ by $b(r^{(n)})$, then we have
+%     % \begin{equation}
+        
+%     % \end{equation}
+% \end{proof}
 
 \bibliographystyle{plain}
 \bibliography{ref}
