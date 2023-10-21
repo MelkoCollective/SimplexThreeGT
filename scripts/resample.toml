@@ -1,0 +1,32 @@
+parent = "de20d208-d0c5-11ed-0e75-eb6afa48009a"
+njobs = 1
+walltime = "1-00:00:00"
+
+[shape]
+ndims = 4
+size = 4
+p = 3
+
+[storage]
+path = "data"
+tags = []
+
+[sample]
+nrepeat = 10
+nthrows = 10
+nsamples = 100000
+observables = ["E", "E^2", "M", "M^2", "accept_rate"]
+
+    [sample.option]
+    nburns = 5000
+    order = "random"
+
+[fields]
+stop = 0.8
+step = 0.01
+start = 0.8
+
+[temperatures]
+stop = 0.05
+step = -0.1
+start = 2.0

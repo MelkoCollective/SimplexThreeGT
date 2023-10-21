@@ -22,7 +22,10 @@ begin
 end
 
 # ╔═╡ c3279e72-838e-49b5-b3dd-c1dc7f301ece
-df = DataFrame(CSV.File("../data/crunch/c8ec6624-cace-11ed-0795-d1e27c39ff1f.csv"))
+df = DataFrame(CSV.File("../data/crunch/9f158064-cd81-11ed-3d1e-8f05d75ea3ad.csv"))
+
+# ╔═╡ 7aa2e82b-f0fa-4cae-bba7-5f70adff77eb
+hasproperty(df, "E(std)")
 
 # ╔═╡ d21e5512-632e-4ae1-8d42-cdb1f98311bb
 gdf = groupby(df, [:field])
@@ -61,11 +64,16 @@ plot(
 	title="h=$(gdf[h].field[1])"
 )
 
-# ╔═╡ 6175d2f3-2a41-4d8c-afaa-d3836e986e41
-maximum(gdf[77]."Cv(std)")
-
-# ╔═╡ 6048db65-70b9-4936-954a-87b2db57e5b1
-maximum(gdf[77]."Cv(mean)")
+# ╔═╡ 52746088-57f6-46d7-b8da-8d1988622f75
+plot(
+	gdf[h]."temp", gdf[h]."χ(mean)",
+	yerror=map(gdf[h]."χ(std)") do x
+		isnan(x) ? 0.0 : x
+	end,
+	legend=nothing,
+	xlabel="temperature", ylabel="χ(mean)",
+	title="h=$(gdf[h].field[1])"
+)
 
 # ╔═╡ d7157f73-a8b5-43bf-b888-ed4fc20d50ed
 maximum(gdf[57]."Cv(tau)")
@@ -109,16 +117,28 @@ end
 # ╔═╡ 18237a59-3057-4a72-9dbe-c22fcc26b568
 heatmap(hs, Ts, M; xlabel="h", ylabel="T")
 
+# ╔═╡ 36db7a3d-1bb8-4e13-b278-78d428d32f43
+χ = let
+	ret = zeros(length(gdf[1].temp), length(gdf))
+	for (h_idx, df) in enumerate(gdf), (T_idx, T) in enumerate(df.temp)
+		ret[end - T_idx + 1, h_idx] = df."χ(mean)"[T_idx] / maximum(df."χ(mean)")
+	end
+	ret
+end
+
+# ╔═╡ 50db1938-1fdc-4fff-80f1-bab842a2338c
+heatmap(hs, Ts, χ; xlabel="h", ylabel="T")
+
 # ╔═╡ Cell order:
 # ╠═de9f08e2-ce67-11ed-3a88-838fff267690
 # ╠═c3279e72-838e-49b5-b3dd-c1dc7f301ece
+# ╠═7aa2e82b-f0fa-4cae-bba7-5f70adff77eb
 # ╠═d21e5512-632e-4ae1-8d42-cdb1f98311bb
 # ╠═8a37f5bd-75b3-435e-9a17-615977321b33
 # ╠═85f64587-79aa-423a-809e-5dcd22d25837
 # ╠═60019633-dc6f-4078-9601-c141df4b46c1
 # ╠═bb6c87a4-8d3c-462a-bef3-8f15c84281a0
-# ╠═6175d2f3-2a41-4d8c-afaa-d3836e986e41
-# ╠═6048db65-70b9-4936-954a-87b2db57e5b1
+# ╠═52746088-57f6-46d7-b8da-8d1988622f75
 # ╠═d7157f73-a8b5-43bf-b888-ed4fc20d50ed
 # ╠═9e3a937b-fb32-45da-8a74-c4dc0e76f4bd
 # ╠═79921671-272f-4a50-a5e7-0b05d236689f
@@ -129,3 +149,5 @@ heatmap(hs, Ts, M; xlabel="h", ylabel="T")
 # ╠═e8395949-5f7b-40f9-bb70-2c2719489b79
 # ╠═fb067387-529d-4849-8d4f-da4943f0c939
 # ╠═18237a59-3057-4a72-9dbe-c22fcc26b568
+# ╠═36db7a3d-1bb8-4e13-b278-78d428d32f43
+# ╠═50db1938-1fdc-4fff-80f1-bab842a2338c

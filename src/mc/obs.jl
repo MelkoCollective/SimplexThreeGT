@@ -11,7 +11,7 @@ end
 
 collect!(::Observable{T}, ::MarkovChain) where T = error("Observable $(T) not implemented")
 
-function finalize!(ob::Observable, ::MarkovChain, nsamples::Int)
+function finalize!(ob::Observable, mc::MarkovChain, nsamples::Int)
     ob.value /= nsamples
     ob.final = true
     return ob

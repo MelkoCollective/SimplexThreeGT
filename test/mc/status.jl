@@ -30,3 +30,10 @@ end # testset
         @test new_E - old_E == delta_E
     end
 end # testset
+
+cm = CellMap(4, 2, (2, 3))
+energy(cm, trues(nspins(cm)), 0.1)
+energy(cm, trues(nspins(cm)), 0.2)
+energy(cm, trues(nspins(cm)), 0.3)
+energy(cm, trues(nspins(cm)), 0.4)
+energy(cm, trues(nspins(cm)), 0.5)

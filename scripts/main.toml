@@ -1,4 +1,4 @@
-njobs = 800
+njobs = 1
 seed = 1234
 walltime = "3-00:00:00"
 
@@ -12,31 +12,33 @@ path = "data"
 tags = []
 
 [sample]
-nrepeat = 200
-nsamples = 500_000
+nrepeat = 2
+nsamples = 200_000
 nthrows = 10
 observables = ["E", "E^2", "M", "M^2", "accept_rate"]
 
     [sample.option]
     nburns = 5000
     order = "random"
+    [sample.option.gauge]
+    steps = 5
 
 [fields]
-start = 0.0
+start = 0.2
 step = 0.01
-stop = 1.0
+stop = 0.2
 
 [temperatures]
-start = 20.0
-step = -0.05
+start = 1.5
+step = -0.02
 stop = 0.05
 
 [checkpoint.temperatures]
-start = 5.0
-step = -0.05
+start = 1.5
+step = -0.02
 stop = 0.05
 
 [checkpoint.fields]
-start = 0.0
+start = 0.2
 step = 0.01
-stop = 1.0
+stop = 0.2
