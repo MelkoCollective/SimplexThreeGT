@@ -206,16 +206,41 @@ return Inverse
 end #Invert_Cube
 
 #----------------------- Wilson Surface ---------------------
-function WilsonSurfaceXY(Spin,Cube,L)
+function WilsonSurface(Spin, L, mu, nu)
+
+    if !(1 <= mu < nu <= 4)
+        error("WilsonSurface requires 1 <= mu < nu <= 4")
+    end
+
+    # Face ordering:
+    # 1=XY, 2=XZ, 3=XK, 4=YZ, 5=YK, 6=ZK
+    orientations = ((1,2), (1,3), (1,4), (2,3), (2,4), (3,4))
+    face_orientation = findfirst(==((mu,nu)), orientations)
 
     Wil = 1
-    for i = 1:(L*L)
-        Wil *= Spin[Cube[4*i-3,1]] #plane 1 is in the XY plane
+    coordinates = zeros(Int, 4)
+
+    # Vary the two coordinates spanning the plane.
+    # Hold the two transverse coordinates fixed at zero.
+    for a = 0:(L-1)
+        for b = 0:(L-1)
+
+            coordinates[mu] = a
+            coordinates[nu] = b
+
+            # One-based vertex index for coordinates (x,y,z,k)
+            v = 1 + coordinates[1] +
+                    L*coordinates[2] +
+                    L^2*coordinates[3] +
+                    L^3*coordinates[4]
+
+            face = 6*(v - 1) + face_orientation
+            Wil *= Spin[face]
+        end
     end
 
     return Wil
-
-end #WilsonSurfaceXY
+end
 
 #-----------------------Energy Calculations---------------------
 
@@ -329,7 +354,6 @@ function main()
     
     Spin = ones(Int,Nspin)
     #Spin = rand(rng,(-1, 1), Nspin)
-    @show WilsonSurfaceXY(Spin,Cube,L)
     #Calculate initial energy
     Energy = Calc_Energy(Spin,Ncube,Cube,H)
     @show Energy
@@ -412,7 +436,7 @@ function main()
            E2 += Energy*Energy
            M_avg += Mag;
            M2 += Mag*Mag;
-           Wxy += WilsonSurfaceXY(Spin,Cube,L) #scales as L^2
+           Wxy += WilsonSurface(Spin,L,1,2) 
         
         end #MCS
          
