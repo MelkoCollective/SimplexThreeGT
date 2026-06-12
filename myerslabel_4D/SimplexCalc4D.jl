@@ -209,7 +209,7 @@ end #Invert_Cube
 function WilsonSurfaceXY(Spin,Cube,L)
 
     Wil = 1
-    for i = L*L #one plane
+    for i = 1:(L*L)
         Wil *= Spin[Cube[4*i-3,1]] #plane 1 is in the XY plane
     end
 
@@ -308,7 +308,7 @@ function main()
     
     L = 3
     Dim = 4
-    H = 0.2  #magnetic/matter field
+    H = 0.0  #magnetic/matter field
     T = 1.5
     
     N0 = L^Dim  #number of vertices
@@ -335,7 +335,7 @@ function main()
     @show Energy
     
     println("T, H, <E>/N, <Cv>/N, <M>/N, <chi>/N ") 
-    for T = 1.5:-0.02:0.05
+    for T = 1.5:-0.02:0.6
          #Equ2libriate
          num_EQL = 50000
          for i = 1:num_EQL
@@ -418,7 +418,7 @@ function main()
          
          Cv = E2/num_MCS- (E_avg/num_MCS)^2
          Susc = M2/num_MCS- (M_avg/num_MCS)^2
-         println(T," ",H," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T) #," ",Wxy/num_MCS)
+         println(T," ",H," ",E_avg/num_MCS/Nspin," ",Cv/Nspin/T/T," ",M_avg/num_MCS/Nspin," ",Susc/Nspin/T," ",Wxy/num_MCS)
     
     end #T loop
 
