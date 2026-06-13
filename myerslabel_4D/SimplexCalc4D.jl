@@ -206,7 +206,7 @@ return Inverse
 end #Invert_Cube
 
 #----------------------- Wilson Surface ---------------------
-function WilsonSurface(Spin, L, mu, nu)
+function WilsonPlaneFaces(L, mu, nu)
 
     if !(1 <= mu < nu <= 4)
         error("WilsonSurface requires 1 <= mu < nu <= 4")
@@ -217,11 +217,11 @@ function WilsonSurface(Spin, L, mu, nu)
     orientations = ((1,2), (1,3), (1,4), (2,3), (2,4), (3,4))
     face_orientation = findfirst(==((mu,nu)), orientations)
 
-    Wil = 1
+    faces = zeros(Int, L^2) 
     coordinates = zeros(Int, 4)
 
+    n=1
     # Vary the two coordinates spanning the plane.
-    # Hold the two transverse coordinates fixed at zero.
     for a = 0:(L-1)
         for b = 0:(L-1)
 
@@ -234,9 +234,22 @@ function WilsonSurface(Spin, L, mu, nu)
                     L^2*coordinates[3] +
                     L^3*coordinates[4]
 
-            face = 6*(v - 1) + face_orientation
-            Wil *= Spin[face]
+            faces[n] = 6*(v - 1) + face_orientation
+            n += 1
         end
+    end
+
+    return faces
+end
+
+#----------------------- Wilson Surface Parity ---------------
+function WilsonSurface(Spin, L, mu, nu)
+
+    faces = WilsonPlaneFaces(L, mu, nu)
+
+    Wil = 1
+    for f in faces
+        Wil *= Spin[f]
     end
 
     return Wil
